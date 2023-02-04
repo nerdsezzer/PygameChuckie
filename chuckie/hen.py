@@ -1,4 +1,6 @@
 from random import Random
+import pygame
+import os
 
 import config
 from chuckie.thing import Thing
@@ -10,6 +12,14 @@ class Hen(Thing):
 
     def __init__(self, name: str, level, start_tile_x, start_tile_y, direction):
         super().__init__(name, level)
+
+        self.image = pygame.image.load(os.path.join('.', 'images', 'hen-1.png')).convert()
+        #img.convert_alpha()
+        #img.set_colorkey(ALPHA)
+        print(f"putting an hen at [{start_tile_x}, {start_tile_y}] => {id(self)}")
+        self.rect = self.image.get_rect()
+        self.rect.x = start_tile_x * config.tile_width
+        self.rect.y = start_tile_y * config.tile_height
 
         self.random = Random()
         self.random.seed()
@@ -23,12 +33,34 @@ class Hen(Thing):
         self.hx_velocity = config.hen_default_hx_velocity if direction == "right" else 0-config.hen_default_hx_velocity
         (self.hx, self.hy) = utils.tile_to_real(start_tile_x, start_tile_y)
 
-        self.draw_func = draw_hen
-        self.draw_func(self)
+        self.move()
+        #self.draw_func = draw_hen
+        #self.draw_func(self)
+        return
+
+    @property
+    def hx(self):
+        return self._hx
+
+    @hx.setter
+    def hx(self, value):
+        self._hx = value
+        self.rect.x = value
+        return
+
+    @property
+    def hy(self):
+        return self._hy
+
+    @hy.setter
+    def hy(self, value):
+        self._hy = value
+        self.rect.y = value
         return
 
     def draw(self):
-        return self.draw_func(self)
+        #return self.draw_func(self)
+        return
 
     def choose(self, options):
         decision = self.random.randint(0, sum(options)-1)
@@ -116,7 +148,8 @@ class Hen(Thing):
             can_go_right = possible[3]
 
             if config.debug_hens:
-                self.debug(f"{sum(possible)}[{tx},{ty}]: "
+                hen_id = str(id(self))
+                self.debug(f"{hen_id}[{tx},{ty}]: "
                            f"up={can_go_up}, down={can_go_down}, left={can_go_left}, right={can_go_right}, "
                            f"dx={self.hx_velocity}, dy={self.hy_velocity}, direction={self.direction}, was={self.previous_direction}")
 

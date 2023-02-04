@@ -1,5 +1,6 @@
-import turtle
+import pygame
 import time
+import sys
 
 import config
 from config import tile_width, tile_height, debug_display
@@ -10,25 +11,30 @@ from chuckie.level_data import levels
 
 
 # Set up the game window
-window = turtle.Screen()
-window.tracer(0)
-window.mode("standard")
-window.setup(config.window_width, config.window_height)
-window.title("Sezzer's Revenge... ChuckieEgg 2023!")
-window.bgcolor("black")
+#window = turtle.Screen()
+#window.tracer(0)
+#window.mode("standard")
+#window.setup(config.window_width, config.window_height)
+#window.title("Sezzer's Revenge... ChuckieEgg 2023!")
+window = pygame.display.set_mode([config.window_width, config.window_height])
+clock = pygame.time.Clock()
+pygame.init()
+
+fps = 20
+
 
 if debug_display:
     """
     Screen width=1280, height=960
     tile width=53, height=32
     """
-    print(f"Screen width={window.window_width()}, height={window.window_height()}")
+    print(f"Screen width={window.get_width()}, height={window.get_height()}")
     print(f"tile width={tile_width}, height={tile_height}")
 
 # Ok, lets do this...
 status = Status()
 ctrls = Controls()
-ctrls.register_handlers(window)
+#ctrls.register_handlers(window)
 level = Level(levels[status.game_level], status)
 level.draw()
 
@@ -38,12 +44,12 @@ level.draw()
 # -----------------------------------------------------------------------------
 
 
-def play_music():
-    delay = 40  # 2 seconds
-    while delay:
-        time.sleep(0.05)
-        window.update()
-        delay -= 1
+#def play_music():
+#    delay = 40  # 2 seconds
+#    while delay:
+#        time.sleep(0.05)
+#        window.update()
+#        delay -= 1
 
 # -----------------------------------------------------------------------------
 # main loop
@@ -55,61 +61,81 @@ tick = False
 
 while not all_done:
 
-    while status.game_lives > 0:
-
-        while ctrls.paused:
-            time.sleep(0.05)
-            window.update()
-
-        tick = not tick
-        if tick:
-            for hen in level.hens:
-                hen.move()
-
-        for lift in level.lifts:
-            lift.move()
-
-        if not level.harry.move(ctrls) \
-                or level.check_lift_death() \
-                or level.check_collision() \
-                or status.is_time_up():
-            print("Oopsie!")
-            status.game_lives -= 1
-            play_music()          # or stall for 2 seconds
-            level.reset()
-
-        if level.are_all_eggs_collected():
-            print("Yay!")
-            # copy bonus to score
-            # update lives (10,000 = 1 life).
-            status.update_score_end_of_level(window)
-
-            # scene change / next level
-            level.unload()
-
-            # stall for a bit...
-            play_music()
-
-            status.game_level += 1
-            if status.game_level >= len(levels):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            try:
+                sys.exit()
+            finally:
                 all_done = True
-                break
 
-            # recreate Level with the next lot of game data.
-            level = Level(levels[status.game_level], status)
-            level.draw()
-            break
+        if event.type == pygame.KEYDOWN:
+            if event.key == ord('p'):
+                ctrls.paused = False
 
-        # normal game tick,
-        status.update(level.harry, level.hens)
-        time.sleep(0.03)
-        window.update()
+    #while status.game_lives > 0:
+
+        #while ctrls.paused:
+        #    time.sleep(0.05)
+        #    window.update()
+
+    tick = not tick
+    if tick:
+        for hen in level.hens:
+            hen.move()
+
+    for lift in level.lifts:
+        lift.move()
+
+        #if not level.harry.move(ctrls) \
+        #        or level.check_lift_death() \
+        #        or level.check_collision() \
+        #        or status.is_time_up():
+        #    print("Oopsie!")
+        #    status.game_lives -= 1
+        #    play_music()          # or stall for 2 seconds
+        #    level.reset()
+
+        #if level.are_all_eggs_collected():
+        #    print("Yay!")
+        #    # copy bonus to score
+        #    # update lives (10,000 = 1 life).
+        #    status.update_score_end_of_level(window)
+        #
+        #    # scene change / next level
+        #    level.unload()
+        #
+        #    # stall for a bit...
+        #    play_music()
+        #
+        #    status.game_level += 1
+        #    if status.game_level >= len(levels):
+        #        all_done = True
+        #        break
+        #
+        #    # recreate Level with the next lot of game data.
+        #    level = Level(levels[status.game_level], status)
+        #    level.draw()
+        #    break
+
+    # normal game tick,
+    window.fill([0, 0, 0])
+    status.update(level.harry, level.hens)
+    #time.sleep(0.03)
+    #window.update()
+    #window.blit(backdrop, backdropbox)
+    level.object_list.draw(window)
+    level.hens.draw(window)
+    level.lifts.draw(window)
+    level.harry.draw(window)
+    pygame.display.flip()
+    clock.tick(fps)
 
     # ah, sad face...
-    if status.game_lives == 0:
-        print("game over!")
-        break
+    #if status.game_lives == 0:
+    #    print("game over!")
+    #    break
 
-turtle.done()
+#turtle.done()
 
 

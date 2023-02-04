@@ -21,7 +21,7 @@ left_limit = -11*tile_width
 right_limit = 10*tile_width
 bottom_limit = -12*tile_height
 top_limit = 14*tile_height                  # note this one is +4'd to allow Harry to jump and come back!
-top_limit_for_lift = 10*tile_height         # this is where the lift disappears, to respawn at the bottom.
+top_limit_for_lift = 28*tile_height         # this is where the lift disappears, to respawn at the bottom.
 
 #
 # global width and height values for drawing the tiles/sprites.
@@ -69,9 +69,9 @@ hens_are_jumpable = True
 # settings to support debug...
 #
 start_paused = True
-debug_display = False
+debug_display = True
 debug_harry = False
-debug_hens = False
+debug_hens = True
 debug_lifts = False
 
 #

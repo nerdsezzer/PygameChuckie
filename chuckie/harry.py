@@ -1,4 +1,7 @@
 import config
+import pygame
+import os
+
 from config import gravity, tile_width, tile_height, jump_height
 from chuckie.thing import Thing
 from chuckie.utils import tile_to_real, real_to_tile, real_x_to_tile
@@ -14,6 +17,14 @@ class Harry(Thing):
     def __init__(self, level, start_tile_x, start_tile_y, start_direction):
         super().__init__('harry', level)
 
+        self.image = pygame.image.load(os.path.join('.', 'images', 'harry-1.png')).convert()
+        #img.convert_alpha()
+        #img.set_colorkey(ALPHA)
+        print(f"putting harry at [{start_tile_x}, {start_tile_y}]")
+        self.rect = self.image.get_rect()
+        self.rect.x = start_tile_x * config.tile_width
+        self.rect.y = start_tile_y * config.tile_height
+
         self.state = False
         self.on_lift = False
         self.direction = start_direction
@@ -23,7 +34,8 @@ class Harry(Thing):
         return
 
     def draw(self):
-        return draw_harry(self)
+        # return draw_harry(self)
+        return
 
     def check_can_move_sideways(self) -> bool:
         """

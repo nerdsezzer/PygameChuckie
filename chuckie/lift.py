@@ -1,4 +1,6 @@
-import turtle
+#import turtle
+import pygame
+import os
 
 import config
 from config import global_w, global_h
@@ -11,11 +13,30 @@ class Lift(Thing):
     def __init__(self, level, start_tile_x, start_tile_y, direction):
         super().__init__('lift', level)
 
+        file = "lift-left.png" if direction == "left" else "lift-right.png"
+        self.image = pygame.image.load(os.path.join('.', 'images', file)).convert()
+        #img.convert_alpha()
+        #img.set_colorkey(ALPHA)
+        print(f"putting a lift at [{start_tile_x}, {start_tile_y}]")
+        self.rect = self.image.get_rect()
+        self.rect.x = start_tile_x * config.tile_width
+        self.rect.y = start_tile_y * config.tile_height
+
         self.state = False
         self.direction = direction
         self.previous_direction = "still"
         (self.hx, self.hy) = utils.tile_to_real(start_tile_x, start_tile_y)
         self.draw()
+        return
+
+    @property
+    def hy(self):
+        return self._hy
+
+    @hy.setter
+    def hy(self, value):
+        self._hy = value
+        self.rect.y = value
         return
 
     def move(self):
@@ -24,7 +45,7 @@ class Lift(Thing):
         bottom of the screen.
         """
         self.hy += config.lift_default_hy_velocity
-        if self.hy >= config.top_limit_for_lift:
+        if self.hy >= config.window_height:  # config.top_limit_for_lift:
             self.hy = config.bottom_limit
 
         if config.debug_lifts:
@@ -32,8 +53,10 @@ class Lift(Thing):
         self.draw()
         return
 
-    def draw(self) -> (turtle, str):
-        """ """
+    def draw(self): # -> (turtle, str):
+        return
+
+        """
         lift = self
         lift.clear()
 
@@ -93,4 +116,4 @@ class Lift(Thing):
         lift.forward(4*h)
         lift.penup()
         lift.end_fill()
-        return
+        return"""

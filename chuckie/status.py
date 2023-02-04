@@ -16,10 +16,10 @@ class Status:
         self.game_pause = 0
         self.game_lives = 5
 
-        self.header = turtle.Turtle()
-        self.header.hideturtle()
-        self.header.penup()
-        self.header.color("orange")
+        #self.header = turtle.Turtle()
+        #self.header.hideturtle()
+        #self.header.penup()
+        #self.header.color("orange")
 
         self._top_level_tile = 12
         self._bottom_level_tile = 10
@@ -86,6 +86,8 @@ class Status:
         return
 
     def draw(self, harry=None, hens=None):
+        return
+
         self.header.clear()
 
         if config.debug_display and harry and hens:

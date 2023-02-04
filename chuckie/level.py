@@ -1,10 +1,11 @@
+import pygame
 import config
-from chuckie.layout_elements import draw_egg, draw_grain, draw_floor, draw_ladder, draw_box
 from chuckie.hen import Hen
 from chuckie.harry import Harry
 from chuckie.lift import Lift
 from chuckie.status import Status
 import chuckie.utils as utils
+from chuckie.layout_elements import Egg, Grain, Floor, Ladder
 
 
 class Level:
@@ -23,19 +24,21 @@ class Level:
         self.status = status
         self.status.reset_new_level()
         self.tiles = {}
+        self.object_list = pygame.sprite.Group()
         self.handles = {}
-        self.harry = None
-        self.hens = []
-        self.lifts = []
+        self.harry = pygame.sprite.Group()
+        self.hens = pygame.sprite.Group()
+        self.lifts = pygame.sprite.Group()
         self.level_egg_count = 0
         self.eggs_collected = 0
         return
 
     @staticmethod
     def grid_to_tile(a, b):
-        y = 0 - (a-9)
-        x = b - 11
-        return x, y
+        #y = 0 - (a-9)
+        #x = b - 11
+        #return x, y
+        return b + 1, a + 6
 
     def draw(self):
         """
@@ -43,45 +46,47 @@ class Level:
         Items are created as they are found.  Moving/Movable objects are
         assigned to member variables.
         """
-        self.harry = None
-        self.hens = []
-        self.lifts = []
-        self.level_egg_count = 0
+        #self.harry = None
+        #self.hens = []
+        #self.lifts = []
+        #self.level_egg_count = 0
 
         for a in reversed(range(0, config.y_tiles)):
             for b in reversed(range(0, config.x_tiles)):
                 element = self.data[a][b]
                 (x, y) = Level.grid_to_tile(a, b)
+                #(x, y) = (b+1, a+6)
 
                 handle = None
                 label = None
 
                 if element == 'e':
-                    handle, label = draw_egg(x, y)
+                    handle, label = (Egg(x, y), "egg")  # draw_egg(x, y)
                     self.level_egg_count += 1
                 elif element == 'g':
-                    handle, label = draw_grain(x, y)
+                    handle, label = (Grain(x, y), "grain")  # draw_grain(x, y)
                 elif element == 'l':
-                    handle, label = draw_ladder(x, y)
+                    handle, label = (Ladder(x, y), "ladder")  # draw_ladder(x, y)
                 elif element == 'f':
-                    handle, label = draw_floor(x, y)
+                    handle, label = (Floor(x, y), "floor")  # draw_floor(x, y)
                 elif element == 'hl':
-                    self.hens.append(Hen('hen', self, x, y, "left"))
+                    self.hens.add(Hen('hen', self, x, y, "left"))
                 elif element == 'hr':
-                    self.hens.append(Hen('hen', self, x, y, "right"))
+                    self.hens.add(Hen('hen', self, x, y, "right"))
                 elif element == 'cl':
-                    self.harry = Harry(self, x, y, "left")
+                    self.harry.add(Harry(self, x, y, "left"))
                 elif element == 'cr':
-                    self.harry = Harry(self, x, y, "right")
-                elif element == '-l':
-                    self.lifts.append(Lift(self, x, y, "left"))
-                elif element == '-r':
-                    self.lifts.append(Lift(self, x, y, "right"))
-                else:
-                    if config.debug_display:
-                        draw_box(x, y, "DarkSlateGray")
+                    self.harry.add(Harry(self, x, y, "right"))
+                #elif element == '-l':
+                #    self.lifts.add(Lift(self, x, y, "left"))
+                #elif element == '-r':
+                #    self.lifts.add(Lift(self, x, y, "right"))
+                #else:
+                #    if config.debug_display:
+                #        draw_box(x, y, "DarkSlateGray")
 
                 if handle:
+                    self.object_list.add(handle)
                     self.handles[(x, y)] = handle
                 if label:
                     self.tiles[(x, y)] = label
@@ -181,7 +186,7 @@ class Level:
         if not hen_mode:
             self.status.update_grain_collected()
         grain = self.handles[(tx, ty)]
-        grain.clear()
+        #  grain.clear()
         del self.handles[(tx, ty)]
         del self.tiles[(tx, ty)]
         return

@@ -2,7 +2,7 @@ import turtle
 
 import config
 from config import tile_width, tile_height, global_w, global_h
-from chuckie.layout_elements import draw_pixel
+#from chuckie.layout_elements import draw_pixel
 from chuckie.layout import _draw_thing_outline
 from chuckie.layout_harry import _draw_head, _draw_body
 

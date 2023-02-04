@@ -1,22 +1,23 @@
-import turtle
+import pygame.sprite
 
 import config
 from chuckie.utils import real_to_tile, tile_width, tile_height
 import chuckie.utils as utils
 
 
-class Thing(turtle.Turtle):
+class Thing(pygame.sprite.Sprite):
 
     def __init__(self, name: str, level):
-        super().__init__()
-        self.hideturtle()
-        self.penup()
+        #super().__init__()
+        pygame.sprite.Sprite.__init__(self)
+        #self.hideturtle()
+        #self.penup()
         self.level = level
         self.state = False
         self.direction = ""
         self.animation_step = 1
-        self.hx = 0
-        self.hy = 0
+        self._hx = 0
+        self._hy = 0
         self.hy_velocity = 0
         self.hx_velocity = 0
         self.y_velocity = 0
@@ -24,9 +25,9 @@ class Thing(turtle.Turtle):
         return
 
     def get_state(self):
-        (tx, ty) = real_to_tile(self.hx, self.hy)
-        return f"[{self.name}] {self.direction}: x,y=({self.hx},{self.hy}), " \
-               f"tile=[{tx},{ty}], calc'd=[{self.hx/tile_width},{self.hy/tile_height}], " \
+        (tx, ty) = real_to_tile(self._hx, self._hy)
+        return f"[{self.name}] {self.direction}: x,y=({self._hx},{self._hy}), " \
+               f"tile=[{tx},{ty}], calc'd=[{self._hx/tile_width},{self._hy/tile_height}], " \
                f"dx={self.hx_velocity}, dy={self.hy_velocity}, y_velocity={self.y_velocity}, " \
                f"underfoot='{self.tile_at(tx, ty-2)}')"
 
@@ -72,8 +73,8 @@ class Thing(turtle.Turtle):
         Returns True if thing is in the 'middle' of a ladder.  This works
         by checking the bottom/foot tile.
         """
-        x = self.hx + self.hx_velocity
-        y = self.hy + self.hy_velocity
+        x = self._hx + self.hx_velocity
+        y = self._hy + self.hy_velocity
         tx, ty = real_to_tile(x, y)
         return self.tile_at(tx, ty-1) == 'ladder' and utils.middle_of_block(tx, ty - 1, x)
 
@@ -83,10 +84,10 @@ class Thing(turtle.Turtle):
         is a floor tile.  It also checks the next tile when it's not a full
         tile check.
         """
-        tx, ty = utils.real_to_tile(self.hx + self.hx_velocity, self.hy + self.hy_velocity)
-        remainder = self.hx % tile_width
+        tx, ty = utils.real_to_tile(self._hx + self.hx_velocity, self._hy + self.hy_velocity)
+        remainder = self._hx % tile_width
         if remainder > 0:
-            other_tx = int((self.hx + self.hx_velocity) / tile_width)
+            other_tx = int((self._hx + self.hx_velocity) / tile_width)
             if self.tile_at(other_tx, ty - 2) == 'floor':
                 return True
         return self.tile_at(tx, ty-2) == 'floor'
@@ -102,15 +103,15 @@ class Thing(turtle.Turtle):
         This checks to see if the tile at Harry's feet is a lift tile.  This
         also checks the next tile if we're not on a full tile.
         """
-        tx, ty = utils.real_to_tile(self.hx + self.hx_velocity, self.hy + self.hy_velocity)
-        remainder = self.hx % tile_width
+        tx, ty = utils.real_to_tile(self._hx + self.hx_velocity, self._hy + self.hy_velocity)
+        remainder = self._hx % tile_width
         ty -= 1
         for lift in self.level.lifts:
             lift_tx, lift_ty = utils.real_to_tile(lift.hx, lift.hy)
             if tx == lift_tx and ty == lift_ty:
                 return lift
             if remainder > 0:
-                other_tx = int((self.hx + self.hx_velocity) / tile_width)
+                other_tx = int((self._hx + self.hx_velocity) / tile_width)
                 if other_tx == lift_tx and ty == lift_ty:
                     return lift
         return None
@@ -120,8 +121,8 @@ class Thing(turtle.Turtle):
         Is called from Harry's process_move() to check if there's a step
         at Harry's feet that might stop him moving that way.
         """
-        x = self.hx + self.hx_velocity
-        tx, ty = real_to_tile(x, self.hy)
+        x = self._hx + self.hx_velocity
+        tx, ty = real_to_tile(x, self._hy)
         remainder = x % tile_width
         if remainder > 0 and self.hx_velocity > 0:
             tx += 1
