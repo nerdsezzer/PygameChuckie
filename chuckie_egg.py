@@ -61,17 +61,7 @@ tick = False
 
 while not all_done:
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            try:
-                sys.exit()
-            finally:
-                all_done = True
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == ord('p'):
-                ctrls.paused = False
+    ctrls.process_events()
 
     #while status.game_lives > 0:
 
@@ -87,14 +77,14 @@ while not all_done:
     for lift in level.lifts:
         lift.move()
 
-        #if not level.harry.move(ctrls) \
+    if not level.harry.sprites()[0].move(ctrls):
         #        or level.check_lift_death() \
         #        or level.check_collision() \
         #        or status.is_time_up():
-        #    print("Oopsie!")
-        #    status.game_lives -= 1
-        #    play_music()          # or stall for 2 seconds
-        #    level.reset()
+        print("Oopsie!")
+        #status.game_lives -= 1
+        #play_music()          # or stall for 2 seconds
+        level.reset()
 
         #if level.are_all_eggs_collected():
         #    print("Yay!")
