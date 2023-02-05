@@ -34,14 +34,12 @@ def real_y_to_tile(real_y):
     return y, "p" if remainder else "f"
 
 
-def top_of_block(tx, ty, real_y):
-    (_, a) = tile_to_real(tx, ty)
-    return real_y == a
+def top_of_block(real_y):
+    return not real_y % config.tile_height
 
 
-def middle_of_block(tx, ty, real_x):
-    (a, _) = tile_to_real(tx, ty)
-    return real_x == a
+def middle_of_block(real_x):
+    return not real_x % config.tile_width
 
 
 def is_outside_playable_area(thing):
