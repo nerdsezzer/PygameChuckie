@@ -119,15 +119,16 @@ class Level:
         Clear and delete all the moveable things, as needed when a level
         is reset.
         """
-        self.harry.clear()
-        del self.harry
+        h = self.harry.sprites()[0]
+        h.kill()
+        del h
 
         for hen in self.hens:
-            hen.clear()
+            hen.kill()
             del hen
 
         for lift in self.lifts:
-            lift.clear()
+            lift.kill()
             del lift
         return
 
@@ -137,26 +138,27 @@ class Level:
            Harry, the hens and the lifts.
         """
         self.unload_movers()
-        self.harry = None
-        self.hens = []
-        self.lifts = []
+        self.harry = pygame.sprite.Group()
+        self.hens = pygame.sprite.Group()
+        self.lifts = pygame.sprite.Group()
 
         for a in reversed(range(0, 22)):
             for b in reversed(range(0, 22)):
                 element = self.data[a][b]
                 (x, y) = Level.grid_to_tile(a, b)
-                if element == 'cl':
-                    self.harry = Harry(self, x, y, "left")
-                elif element == 'cr':
-                    self.harry = Harry(self, x, y, "right")
-                elif element == 'hl':
-                    self.hens.append(Hen('hen', self, x, y, "left"))
+
+                if element == 'hl':
+                    self.hens.add(Hen('hen', self, x, y, "left"))
                 elif element == 'hr':
-                    self.hens.append(Hen('hen', self, x, y, "right"))
-                elif element == '-l':
-                    self.lifts.append(Lift(self, x, y, "left"))
-                elif element == '-r':
-                    self.lifts.append(Lift(self, x, y, "right"))
+                    self.hens.add(Hen('hen', self, x, y, "right"))
+                elif element == 'cl':
+                    self.harry.add(Harry(self, x, y, "left"))
+                elif element == 'cr':
+                    self.harry.add(Harry(self, x, y, "right"))
+                #elif element == '-l':
+                #    self.lifts.add(Lift(self, x, y, "left"))
+                #elif element == '-r':
+                #    self.lifts.add(Lift(self, x, y, "right"))
 
         return
 
@@ -164,20 +166,22 @@ class Level:
     # Win condition - Egg related
     # -------------------------------------------------------------------------
 
-    def consume_egg(self, tx, ty):
+    def consume_egg(self, _egg):
         """
         Add 100 points to the score, increment count of eggs collected,
         then delete the egg object from the list of handles and elements.
         """
         self.status.update_egg_collected()
         self.eggs_collected += 1
+        (tx, ty) = utils.real_to_tile(_egg.rect.x, _egg.rect.y)
         egg = self.handles[(tx, ty)]
-        egg.clear()
+        egg.kill()
+        del egg
         del self.handles[(tx, ty)]
         del self.tiles[(tx, ty)]
         return
 
-    def consume_grain(self, tx, ty, hen_mode=False):
+    def consume_grain(self, _grain, hen_mode=False):
         """
         Add 50 points to the score, and stall time ticking down if Harry
         found the grain.
@@ -185,8 +189,10 @@ class Level:
         """
         if not hen_mode:
             self.status.update_grain_collected()
+        (tx, ty) = utils.real_to_tile(_grain.rect.x, _grain.rect.y)
         grain = self.handles[(tx, ty)]
-        #  grain.clear()
+        grain.kill()
+        del grain
         del self.handles[(tx, ty)]
         del self.tiles[(tx, ty)]
         return
