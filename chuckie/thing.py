@@ -22,6 +22,27 @@ class Thing(pygame.sprite.Sprite):
         self.hx_velocity = 0
         self.y_velocity = 0
         self.name = name
+        self.rect = None
+        return
+
+    @property
+    def hx(self):
+        return self._hx
+
+    @hx.setter
+    def hx(self, value):
+        self._hx = value
+        self.rect.x = value
+        return
+
+    @property
+    def hy(self):
+        return self._hy
+
+    @hy.setter
+    def hy(self, value):
+        self._hy = value
+        self.rect.y = value
         return
 
     def get_state(self):
@@ -40,21 +61,91 @@ class Thing(pygame.sprite.Sprite):
             print(f"{self.name}: {s}")
         return
 
-    def get_possible_moves(self, tx, ty):
+    def is_going_up(self):
+        if self.hy_velocity < 0:
+            return True
+        return False
+
+    def is_going_down(self):
+        if self.hy_velocity > 0:
+            return True
+        return False
+
+    def is_going_left(self):
+        if self.hx_velocity < 0:
+            return True
+        return False
+
+    def is_going_right(self):
+        if self.hx_velocity > 0:
+            return True
+        return False
+
+    def element_under_foot(self, calc_next_position: bool = False, update_x_only: bool = False):
+        if calc_next_position:
+            pt = (self.rect.centerx + self.hx_velocity,
+                  self.rect.y + self.hy_velocity + (config.tile_height * 2))
+        else:
+            if update_x_only:
+                pt = (self.rect.centerx + self.hx_velocity,
+                      self.rect.y + (config.tile_height * 2))
+            else:
+                pt = (self.rect.centerx,
+                      self.rect.y + (config.tile_height * 2))
+        element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
+        return element
+
+    def element_at_foot_level(self, calc_next_position: bool = False):
+        if calc_next_position:
+            pt = (self.rect.centerx + self.hx_velocity,
+                  self.rect.y + self.hy_velocity + (config.tile_height * 1))
+        else:
+            pt = (self.rect.centerx,
+                  self.rect.y + (config.tile_height * 1))
+        element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
+        return element
+
+    def object_at_foot_level(self, calc_next_position: bool = False):
+        if calc_next_position:
+            pt = (self.rect.centerx + self.hx_velocity,
+                  self.rect.y + self.hy_velocity + (config.tile_height * 1))
+        else:
+            pt = (self.rect.centerx,
+                  self.rect.y + (config.tile_height * 1))
+        object = next(iter([r for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
+        return object
+
+    def get_possible_moves(self):
         """
         Returns a list of bools, that denote if a Harry or a Hen can go
         up, down, left or right, in that order.
         """
         moves = [False, False, False, False]
-        if self.tile_at(tx, ty+1) == 'ladder' and self.name == "hen":
+
+        over_head = (self._hx, self._hy - config.tile_height)
+        over_head_element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(over_head)]), None)
+
+        head_tile = (self._hx, self._hy)
+        head_tile_element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(head_tile)]), None)
+
+        under_foot = (self._hx, self._hy + (config.tile_height * 2))
+        under_foot_element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(under_foot)]), None)
+
+        under_left = (self.rect.centerx - config.tile_width, self._hy + (config.tile_height * 2))
+        under_left_element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(under_left)]), None)
+
+        under_right = (self.rect.centerx + config.tile_width, self._hy + (config.tile_height * 2))
+        under_right_element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(under_right)]), None)
+
+        if over_head_element == 'ladder' and self.name == "hen":
             moves[0] = True
-        if self.tile_at(tx, ty) == 'ladder' and self.name == "harry":
+        if head_tile_element == 'ladder' and self.name == "harry":
             moves[0] = True
-        if self.tile_at(tx, ty-2) == 'ladder':
+        if under_foot_element == 'ladder':
             moves[1] = True
-        if self.tile_at(tx-1, ty-2) == 'floor' or self.tile_at(tx-1, ty-2) == 'ladder':
+        if under_left_element == 'floor' or under_left_element == 'ladder':
             moves[2] = True
-        if self.tile_at(tx+1, ty-2) == 'floor' or self.tile_at(tx+1, ty-2) == 'ladder':
+        if under_right_element == 'floor' or under_right_element == 'ladder':
             moves[3] = True
         return moves
 
@@ -76,7 +167,7 @@ class Thing(pygame.sprite.Sprite):
         x = self._hx + self.hx_velocity
         y = self._hy + self.hy_velocity
         tx, ty = real_to_tile(x, y)
-        return self.tile_at(tx, ty-1) == 'ladder' and utils.middle_of_block(tx, ty - 1, x)
+        return self.tile_at(tx, ty-1) == 'ladder' and utils.middle_of_block(x)
 
     def is_floor(self) -> bool:
         """
