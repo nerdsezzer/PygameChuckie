@@ -1,3 +1,6 @@
+import pygame
+import sys
+
 from config import start_paused
 
 
@@ -13,20 +16,44 @@ class Controls:
         self.s_down = False
         self.space_down = False
         self.paused = True if start_paused else False
+        self.quit = False
         return
 
-    def register_handlers(self, window):
-        window.onkeypress(self.move_left, "a")
-        window.onkeyrelease(self.move_left_end, "a")
-        window.onkeypress(self.move_right, "d")
-        window.onkeyrelease(self.move_right_end, "d")
-        window.onkeypress(self.move_up, "w")
-        window.onkeyrelease(self.move_up_end, "w")
-        window.onkeypress(self.move_down, "s")
-        window.onkeyrelease(self.move_down_end, "s")
-        window.onkeypress(self.move_jump, "space")
-        window.onkeypress(self.toggle_pause, "p")
-        window.listen()
+    def process_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                try:
+                    sys.exit()
+                finally:
+                    self.quit = True
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == ord('p'):
+                    self.toggle_pause()
+                if event.key == ord('w'):
+                    self.move_up()
+                if event.key == ord('s'):
+                    self.move_down()
+                if event.key == ord('a'):
+                    self.move_left()
+                if event.key == ord('d'):
+                    self.move_right()
+                if event.key == pygame.K_SPACE:
+                    self.move_jump()
+
+            if event.type == pygame.KEYUP:
+                if event.key == ord('p'):
+                    self.toggle_pause()
+                if event.key == ord('w'):
+                    self.move_up_end()
+                if event.key == ord('s'):
+                    self.move_down_end()
+                if event.key == ord('a'):
+                    self.move_left_end()
+                if event.key == ord('d'):
+                    self.move_right_end()
+
         return
 
     def toggle_pause(self):
@@ -69,7 +96,3 @@ class Controls:
     def move_jump(self):
         self.space_down = True
         return
-
-    def turn_stop(self):
-        return
-
