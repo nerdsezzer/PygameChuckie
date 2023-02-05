@@ -4,7 +4,6 @@ import os
 
 import config
 from chuckie.thing import Thing
-from chuckie.layout_hen import draw_hen
 import chuckie.utils as utils
 
 
