@@ -13,9 +13,28 @@ class Hen(Thing):
     def __init__(self, name: str, level, start_tile_x, start_tile_y, direction):
         super().__init__(name, level)
 
-        self.image = pygame.image.load(os.path.join('.', 'images', 'hen-1.png')).convert()
-        #img.convert_alpha()
-        #img.set_colorkey(ALPHA)
+        self.images_left_right = []
+        for i in range(1, 5):
+            img = pygame.image.load(os.path.join('.', 'images', 'hen-' + str(i) + '.png')).convert()
+            img.convert_alpha()
+            img.set_colorkey((0, 0, 0))
+            self.images_left_right.append(img)
+        self.images_eating = []
+        for i in range(1, 5):
+            img = pygame.image.load(os.path.join('.', 'images', 'hen-eating-' + str(i) + '.png')).convert()
+            img.convert_alpha()
+            img.set_colorkey((0, 0, 0))
+            self.images_eating.append(img)
+        self.images_up_down = []
+        for i in range(1, 5):
+            img = pygame.image.load(os.path.join('.', 'images', 'hen-ladder-' + str(i) + '.png')).convert()
+            img.convert_alpha()
+            img.set_colorkey((0, 0, 0))
+            self.images_up_down.append(img)
+        self.images = self.images_left_right
+        self.image = self.images[0]
+        self.animation_step = 0
+
         print(f"putting an hen at [{start_tile_x}, {start_tile_y}] => {id(self)}")
         self.rect = self.image.get_rect()
         self.rect.x = start_tile_x * config.tile_width
@@ -28,38 +47,46 @@ class Hen(Thing):
 
         self.direction = direction
         self.previous_direction = direction
-        self.animation_step = 1
 
         self.hx_velocity = config.hen_default_hx_velocity if direction == "right" else 0-config.hen_default_hx_velocity
         (self.hx, self.hy) = utils.tile_to_real(start_tile_x, start_tile_y)
 
         self.move()
-        #self.draw_func = draw_hen
-        #self.draw_func(self)
-        return
-
-    @property
-    def hx(self):
-        return self._hx
-
-    @hx.setter
-    def hx(self, value):
-        self._hx = value
-        self.rect.x = value
-        return
-
-    @property
-    def hy(self):
-        return self._hy
-
-    @hy.setter
-    def hy(self, value):
-        self._hy = value
-        self.rect.y = value
         return
 
     def draw(self):
-        #return self.draw_func(self)
+        """
+        Figure out which image to display, there are two for left, right (stretched out
+        to four), three for eating (stretched to four) and three for going up or down
+        (stretched out to four).  The image arrays are swapped depending on the hen's
+        direction or state.
+        """
+        self.animation_step += 1
+        if self.animation_step == 4:
+            self.animation_step = 0
+
+        if self.direction == 'up' or self.direction == 'down':
+            self.images = self.images_up_down
+            self.image = self.images[self.animation_step]
+            return
+
+        if self.direction == 'eating':
+            self.images = self.images_eating
+            self.image = self.images[self.animation_step]
+            if self.animation_step == 3:
+                self.direction = self.previous_direction
+
+            if self.previous_direction == 'right':
+                self.image = self.images[self.animation_step]
+            elif self.previous_direction == 'left':
+                self.image = pygame.transform.flip(self.images[self.animation_step], True, False)
+            return
+
+        self.images = self.images_left_right
+        if self.is_going_right():
+            self.image = self.images[self.animation_step]
+        elif self.is_going_left():
+            self.image = pygame.transform.flip(self.images[self.animation_step], True, False)
         return
 
     def choose(self, options):
@@ -71,14 +98,14 @@ class Hen(Thing):
         if self.check_can_move_up_down():
             self.direction = "up"
             self.hx_velocity = 0
-            self.hy_velocity = config.hen_default_hy_velocity
+            self.hy_velocity = 0 - config.hen_default_hy_velocity
         return
 
     def move_down(self):
         if self.check_can_move_up_down():
             self.direction = "down"
             self.hx_velocity = 0
-            self.hy_velocity = 0 - config.hen_default_hy_velocity
+            self.hy_velocity = config.hen_default_hy_velocity
         return
 
     def move_left(self):
@@ -103,7 +130,7 @@ class Hen(Thing):
         for Hen's, so all we need to do if check they're on the top of a block.
         """
         (tx, ty) = utils.real_to_tile(self.hx, self.hy)
-        if not utils.top_of_block(tx, ty, self.hy):
+        if not utils.top_of_block(self.hy):
             return False
         return True
 
@@ -113,7 +140,7 @@ class Hen(Thing):
         This function takes the current direction of travel into account.
         """
         (tx, ty) = utils.real_to_tile(self.hx, self.hy)
-        if not utils.middle_of_block(tx, ty, self.hx):
+        if not utils.middle_of_block(self.hx):
             return False
         return True
 
@@ -130,7 +157,7 @@ class Hen(Thing):
 
             # just check we're actually going over a tile boundary...
             # if not process the move, without thinking too hard!
-            if not utils.top_of_block(tx, ty, self.hy) or not utils.middle_of_block(tx, ty, self.hx):
+            if not utils.top_of_block(self.hy) or not utils.middle_of_block(self.hx):
                 self.hx += self.hx_velocity
                 self.hy += self.hy_velocity
                 self.draw()
@@ -138,7 +165,7 @@ class Hen(Thing):
 
             # get all possible directions we can move in for the current tile.
             (tx, ty) = utils.real_to_tile(self.hx, self.hy)
-            possible = self.get_possible_moves(tx, ty)
+            possible = self.get_possible_moves()
             if sum(possible) == 0:
                 return
 
@@ -161,9 +188,9 @@ class Hen(Thing):
                 self.move_right()
             elif options == 2 and self.hx_velocity < 0 and can_go_left:
                 self.move_left()
-            elif options == 2 and self.hy_velocity > 0 and can_go_up:
+            elif options == 2 and self.hy_velocity < 0 and can_go_up:
                 self.move_up()
-            elif options == 2 and self.hy_velocity < 0 and can_go_down:
+            elif options == 2 and self.hy_velocity > 0 and can_go_down:
                 self.move_down()
             elif options == 0:
                 if config.debug_hens:
@@ -194,14 +221,18 @@ class Hen(Thing):
                 func = self.actions[self.choose(possible)]
                 func()
 
-            next_tx = tx - 1 if self.hx_velocity < 0 else tx + 1
-            if self.tile_at(next_tx, ty - 1) == 'grain':
+            next_tile = (self.hx + self.hx_velocity, self.hy + self.hy_velocity + config.tile_height)
+            next_element = next(iter([r for r in self.level.object_list if r.rect.collidepoint(next_tile)]), None)
+            if next_element and next_element.name == 'grain':
                 self.previous_direction = self.direction
                 self.direction = 'eating'
-                self.level.consume_grain(next_tx, ty - 1, hen_mode=True)
+                self.level.consume_grain(next_element, hen_mode=True)
+                if self.is_going_left():
+                    self.hx -= config.tile_width
                 self.hx_velocity = 0
                 self.hy_velocity = 0
                 self.animation_step = 0  # reset the step counter for eating.
+                self.draw()
 
         if self.direction != previous:
             self.previous_direction = previous
