@@ -43,8 +43,6 @@ class Controls:
                     self.move_jump()
 
             if event.type == pygame.KEYUP:
-                if event.key == ord('p'):
-                    self.toggle_pause()
                 if event.key == ord('w'):
                     self.move_up_end()
                 if event.key == ord('s'):
