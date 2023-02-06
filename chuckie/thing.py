@@ -95,15 +95,19 @@ class Thing(pygame.sprite.Sprite):
         element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
         return element
 
-    def element_at_foot_level(self, calc_next_position: bool = False):
+    def object_under_foot(self, calc_next_position: bool = False):
         if calc_next_position:
             pt = (self.rect.centerx + self.hx_velocity,
-                  self.rect.y + self.hy_velocity + (config.tile_height * 1))
+                  self.rect.y + self.hy_velocity + (config.tile_height * 2))
         else:
             pt = (self.rect.centerx,
-                  self.rect.y + (config.tile_height * 1))
-        element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
-        return element
+                  self.rect.y + (config.tile_height * 2))
+        object = next(iter([r for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
+        return object
+
+    def element_at_foot_level(self, calc_next_position: bool = False):
+        element = self.object_at_foot_level(calc_next_position)
+        return element.name if element else None
 
     def object_at_foot_level(self, calc_next_position: bool = False):
         if calc_next_position:
@@ -112,8 +116,8 @@ class Thing(pygame.sprite.Sprite):
         else:
             pt = (self.rect.centerx,
                   self.rect.y + (config.tile_height * 1))
-        object = next(iter([r for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
-        return object
+        obj = next(iter([r for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
+        return obj
 
     def get_possible_moves(self):
         """
