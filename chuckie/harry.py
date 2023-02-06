@@ -16,12 +16,21 @@ class Harry(Thing):
     def __init__(self, level, start_tile_x, start_tile_y, start_direction):
         super().__init__('harry', level)
 
-        self.images = []
+        self.images_left_right = []
         for i in range(1, 5):
             img = pygame.image.load(os.path.join('.', 'images', 'harry-' + str(i) + '.png')).convert()
             img.convert_alpha()
             img.set_colorkey((0, 0, 0))
-            self.images.append(img)
+            self.images_left_right.append(img)
+
+        self.images_up_down = []
+        for i in range(1, 5):
+            img = pygame.image.load(os.path.join('.', 'images', 'harry-ladder-' + str(i) + '.png')).convert()
+            img.convert_alpha()
+            img.set_colorkey((0, 0, 0))
+            self.images_up_down.append(img)
+
+        self.images = self.images_left_right
         self.image = self.images[0]
         self.animation_step = -1
 
@@ -39,13 +48,33 @@ class Harry(Thing):
         return
 
     def draw(self):
+        """
+        Figure out what sprite image is needed, Harry has two modes, up-down or
+        left-right.  Both comprise a set of 4 images.
+        """
+        # which set of images are we using?
+        if (self.direction == 'up' and self.is_going_up()) or (self.direction == 'down' and self.is_going_down()):
+            self.images = self.images_up_down
+        else:
+            self.images = self.images_left_right
+
+        # increment, and wrap if necessary, the animation step.
         self.animation_step += 1
-        if self.animation_step >= len(self.images):
+        if self.animation_step == len(self.images):
             self.animation_step = 0
-        if self.hx_velocity > 0 or self.previous_direction == 'right':
+
+        # now figure out which image to use.
+        if self.is_going_right():
             self.image = self.images[self.animation_step]
-        elif self.hx_velocity < 0 or self.previous_direction == 'left':
+        elif self.is_going_left():
             self.image = pygame.transform.flip(self.images[self.animation_step], True, False)
+        elif (self.is_going_up() or self.is_going_down()) and not self.direction == 'jump':
+            self.image = self.images[self.animation_step]
+        else:
+            if self.previous_direction == 'left':
+                self.image = pygame.transform.flip(self.images[self.animation_step], True, False)
+            elif self.previous_direction == 'right':
+                self.image = self.images[self.animation_step]
         return
 
     def check_can_move_sideways(self) -> bool:
@@ -250,7 +279,7 @@ class Harry(Thing):
         tx, ty = real_to_tile(x, y)
 
         under_foot = self.element_under_foot(calc_next_position=True)
-        if self.is_going_down() and (under_foot == 'floor' or under_foot == 'ladder'):
+        if self.is_going_down() and under_foot == 'floor':
             # he's falling and hits floor.
             self.hy_velocity = 0
             self.y_velocity = 0
@@ -392,6 +421,12 @@ class Harry(Thing):
 
         # ... to see if there's anything to collect/pickup.
         element = self.object_at_foot_level(calc_next_position=False)
+        if element and element.name == 'egg':
+            self.level.consume_egg(element)
+        if element and element.name == "grain":
+            self.level.consume_grain(element)
+
+        element = self.object_under_foot(calc_next_position=False)
         if element and element.name == 'egg':
             self.level.consume_egg(element)
         if element and element.name == "grain":
