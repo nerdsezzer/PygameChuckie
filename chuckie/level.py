@@ -24,14 +24,18 @@ class Level:
         self.status = status
         self.status.reset_new_level()
         self.tiles = {}
-        self.object_list = pygame.sprite.Group()
+        self.elements = pygame.sprite.Group()
         self.handles = {}
-        self.harry = pygame.sprite.Group()
+        self.harrys = pygame.sprite.Group()
         self.hens = pygame.sprite.Group()
         self.lifts = pygame.sprite.Group()
         self.level_egg_count = 0
         self.eggs_collected = 0
         return
+
+    @property
+    def harry(self):
+        return self.harrys.sprites()[0]
 
     @staticmethod
     def grid_to_tile(a, b):
@@ -66,9 +70,9 @@ class Level:
                 elif element == 'hr':
                     self.hens.add(Hen('hen', self, x, y, "right"))
                 elif element == 'cl':
-                    self.harry.add(Harry(self, x, y, "left"))
+                    self.harrys.add(Harry(self, x, y, "left"))
                 elif element == 'cr':
-                    self.harry.add(Harry(self, x, y, "right"))
+                    self.harrys.add(Harry(self, x, y, "right"))
                 elif element == '-l':
                     self.lifts.add(Lift(self, x, y, "left"))
                 elif element == '-r':
@@ -78,7 +82,7 @@ class Level:
                 #        draw_box(x, y, "DarkSlateGray")
 
                 if handle:
-                    self.object_list.add(handle)
+                    self.elements.add(handle)
                     self.handles[(x, y)] = handle
                 if label:
                     self.tiles[(x, y)] = label
@@ -111,9 +115,8 @@ class Level:
         Clear and delete all the moveable things, as needed when a level
         is reset.
         """
-        h = self.harry.sprites()[0]
-        h.kill()
-        del h
+        self.harry.kill()
+        #del self.harry
 
         for hen in self.hens:
             hen.kill()
@@ -130,7 +133,7 @@ class Level:
            Harry, the hens and the lifts.
         """
         self.unload_movers()
-        self.harry = pygame.sprite.Group()
+        self.harrys = pygame.sprite.Group()
         self.hens = pygame.sprite.Group()
         self.lifts = pygame.sprite.Group()
 
@@ -144,9 +147,9 @@ class Level:
                 elif element == 'hr':
                     self.hens.add(Hen('hen', self, x, y, "right"))
                 elif element == 'cl':
-                    self.harry.add(Harry(self, x, y, "left"))
+                    self.harrys.add(Harry(self, x, y, "left"))
                 elif element == 'cr':
-                    self.harry.add(Harry(self, x, y, "right"))
+                    self.harrys.add(Harry(self, x, y, "right"))
                 elif element == '-l':
                     self.lifts.add(Lift(self, x, y, "left"))
                 elif element == '-r':
@@ -208,9 +211,9 @@ class Level:
         if config.hens_are_friendly:
             return False
 
-        harry_tx, harry_ty = utils.real_to_tile(self.harry.hx, self.harry.hy)
+        harry_tx, harry_ty = utils.real_to_tile(self.harry.rect.x, self.harry.rect.y)
         for h in self.hens:
-            tx, ty = utils.real_to_tile(h.hx, h.hy)
+            tx, ty = utils.real_to_tile(h.rect.x, h.rect.y)
             if harry_tx == tx and harry_ty == ty:
                 return True
             if not config.hens_are_jumpable and harry_tx == tx and harry_ty-1 == ty:
@@ -230,7 +233,7 @@ class Level:
         if not self.harry.on_lift:
             return False
 
-        if self.harry.hy > config.top_limit_for_lift + config.tile_height:
+        if self.harry.rect.y > config.top_limit_for_lift + config.tile_height:
             return True
 
         return False
