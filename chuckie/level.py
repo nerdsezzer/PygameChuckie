@@ -35,9 +35,6 @@ class Level:
 
     @staticmethod
     def grid_to_tile(a, b):
-        #y = 0 - (a-9)
-        #x = b - 11
-        #return x, y
         return b + 1, a + 6
 
     def draw(self):
@@ -46,29 +43,24 @@ class Level:
         Items are created as they are found.  Moving/Movable objects are
         assigned to member variables.
         """
-        #self.harry = None
-        #self.hens = []
-        #self.lifts = []
-        #self.level_egg_count = 0
 
         for a in reversed(range(0, config.y_tiles)):
             for b in reversed(range(0, config.x_tiles)):
                 element = self.data[a][b]
                 (x, y) = Level.grid_to_tile(a, b)
-                #(x, y) = (b+1, a+6)
 
                 handle = None
                 label = None
 
                 if element == 'e':
-                    handle, label = (Egg(x, y), "egg")  # draw_egg(x, y)
+                    handle, label = (Egg(x, y), "egg")
                     self.level_egg_count += 1
                 elif element == 'g':
-                    handle, label = (Grain(x, y), "grain")  # draw_grain(x, y)
+                    handle, label = (Grain(x, y), "grain")
                 elif element == 'l':
-                    handle, label = (Ladder(x, y), "ladder")  # draw_ladder(x, y)
+                    handle, label = (Ladder(x, y), "ladder")
                 elif element == 'f':
-                    handle, label = (Floor(x, y), "floor")  # draw_floor(x, y)
+                    handle, label = (Floor(x, y), "floor")
                 elif element == 'hl':
                     self.hens.add(Hen('hen', self, x, y, "left"))
                 elif element == 'hr':
@@ -77,10 +69,10 @@ class Level:
                     self.harry.add(Harry(self, x, y, "left"))
                 elif element == 'cr':
                     self.harry.add(Harry(self, x, y, "right"))
-                #elif element == '-l':
-                #    self.lifts.add(Lift(self, x, y, "left"))
-                #elif element == '-r':
-                #    self.lifts.add(Lift(self, x, y, "right"))
+                elif element == '-l':
+                    self.lifts.add(Lift(self, x, y, "left"))
+                elif element == '-r':
+                    self.lifts.add(Lift(self, x, y, "right"))
                 #else:
                 #    if config.debug_display:
                 #        draw_box(x, y, "DarkSlateGray")
@@ -155,11 +147,10 @@ class Level:
                     self.harry.add(Harry(self, x, y, "left"))
                 elif element == 'cr':
                     self.harry.add(Harry(self, x, y, "right"))
-                #elif element == '-l':
-                #    self.lifts.add(Lift(self, x, y, "left"))
-                #elif element == '-r':
-                #    self.lifts.add(Lift(self, x, y, "right"))
-
+                elif element == '-l':
+                    self.lifts.add(Lift(self, x, y, "left"))
+                elif element == '-r':
+                    self.lifts.add(Lift(self, x, y, "right"))
         return
 
     # -------------------------------------------------------------------------
