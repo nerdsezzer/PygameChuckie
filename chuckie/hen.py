@@ -221,7 +221,7 @@ class Hen(Thing):
                 func()
 
             next_tile = (self.hx + self.hx_velocity, self.hy + self.hy_velocity + config.tile_height)
-            next_element = next(iter([r for r in self.level.object_list if r.rect.collidepoint(next_tile)]), None)
+            next_element = next(iter([r for r in self.level.elements if r.rect.collidepoint(next_tile)]), None)
             if next_element and next_element.name == 'grain':
                 self.previous_direction = self.direction
                 self.direction = 'eating'
