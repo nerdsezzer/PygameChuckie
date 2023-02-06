@@ -63,10 +63,14 @@ class Harry(Thing):
         if self.animation_step == len(self.images):
             self.animation_step = 0
 
+        # make him stand still on the lift... or jogs on the spot!
+        if self.on_lift:
+            self.animation_step = 2
+
         # now figure out which image to use.
-        if self.is_going_right():
+        if self.is_going_right() or (self.on_lift and self.direction == 'right'):
             self.image = self.images[self.animation_step]
-        elif self.is_going_left():
+        elif self.is_going_left() or (self.on_lift and self.direction == 'left'):
             self.image = pygame.transform.flip(self.images[self.animation_step], True, False)
         elif (self.is_going_up() or self.is_going_down()) and not self.direction == 'jump':
             self.image = self.images[self.animation_step]
@@ -99,9 +103,8 @@ class Harry(Thing):
         if under_foot == 'floor':
             return True
 
-        # if we're moving left, the real co-ordinates will be reporting as
-        # the next block, if this is only a 'in tile' move, just let it happen.
-        if self.is_going_right() and self.hx % tile_width:
+        # if just doing a 'within tile move' then crack on...
+        if self.hx % tile_width:
             return True
 
         # if the new block is a ladder then... ok
@@ -264,6 +267,7 @@ class Harry(Thing):
         self.hy_velocity = self.y_velocity
         if self.on_lift:
             # we need an extra boost when jumping on or from a lift
+            print("jumping from lift... double oomph")
             self.hy_velocity += (2*config.lift_default_hy_velocity)
             self.on_lift = False
 
@@ -278,7 +282,9 @@ class Harry(Thing):
         y = self.hy + self.hy_velocity
         tx, ty = real_to_tile(x, y)
 
+        #at_foot = self.element_at_foot_level(calc_next_position=True)
         under_foot = self.element_under_foot(calc_next_position=True)
+
         if self.is_going_down() and under_foot == 'floor':
             # he's falling and hits floor.
             self.hy_velocity = 0
@@ -299,14 +305,15 @@ class Harry(Thing):
         elif self.is_lift():
             # he's landed on a 'lift'
             lift = self.get_lift()
-            lift_x, lift_y = lift.hx, lift.hy
+            print(f"we're going up!! lift at {lift.hx},{lift.hy}")
+            # lift_x, lift_y = lift.hx, lift.hy
             self.hy_velocity = 0
             self.y_velocity = 0
             self.direction = "right" if prev_delta_hx > 0 else "left"
             self.on_lift = True
             self.hy_velocity = config.lift_default_hy_velocity
             self.hx_velocity = 0
-            self.hy = lift_y + (2 * tile_height)
+            self.hy = lift._hy - (2 * tile_height)
 
         else:
             self.hx = x
@@ -339,8 +346,26 @@ class Harry(Thing):
                     self.direction = "still"
                     self.hx_velocity = 0
                 else:
-                    # ... did he walk off an edge?
-                    if utils.middle_of_block(self.hx) and not self.element_under_foot(calc_next_position=False, update_x_only=True):
+                    # did he walk off the edge ... of a lift?
+                    if self.on_lift:
+                        lift = self.get_lift()
+                        if lift:
+                            remainder = self.rect.centerx % tile_width
+                            if (lift.direction == 'left' and remainder < (tile_width//4)) \
+                                    or (lift.direction == 'right' and remainder > 3 * (tile_width//4)):
+                                print("Falling off a lift.")
+                                self.direction = 'falling'
+                                self.on_lift = False
+                                self.hx_velocity = 0
+                                self.hy_velocity = config.harry_falling_hy_velocity
+                                return
+                            else:
+                                # update the hx value...
+                                self.hx += self.hx_velocity
+
+                    # ... or off the edge of a floor tile?
+                    elif utils.middle_of_block(self.hx) \
+                            and not self.element_under_foot(calc_next_position=False, update_x_only=True):
                         print("Falling")
                         self.direction = 'falling'
                         self.on_lift = False
