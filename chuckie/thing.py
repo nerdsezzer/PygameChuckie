@@ -8,10 +8,7 @@ import chuckie.utils as utils
 class Thing(pygame.sprite.Sprite):
 
     def __init__(self, name: str, level):
-        #super().__init__()
         pygame.sprite.Sprite.__init__(self)
-        #self.hideturtle()
-        #self.penup()
         self.level = level
         self.state = False
         self.direction = ""
@@ -47,9 +44,10 @@ class Thing(pygame.sprite.Sprite):
 
     def get_state(self):
         (tx, ty) = real_to_tile(self._hx, self._hy)
-        return f"[{self.name}] {self.direction}: x,y=({self._hx},{self._hy}), " \
-               f"tile=[{tx},{ty}], calc'd=[{self._hx/tile_width},{self._hy/tile_height}], " \
-               f"dx={self.hx_velocity}, dy={self.hy_velocity}, y_velocity={self.y_velocity}, " \
+        lift = f"(lift)" if self.on_lift else ""
+        return f"[{self.name}] {self.direction}{lift}: x,y=({self._hx:.2f},{self._hy:.2f}), " \
+               f"tile=[{tx},{ty}], calc'd=[{(self._hx/tile_width):.2f},{(self._hy/tile_height):.2f}], " \
+               f"dx={self.hx_velocity:.2f}, dy={self.hy_velocity:.2f}, y_velocity={self.y_velocity:.2f}, " \
                f"underfoot='{self.tile_at(tx, ty-2)}')"
 
     def dump_state(self, prefix=""):
@@ -92,7 +90,7 @@ class Thing(pygame.sprite.Sprite):
             else:
                 pt = (self.rect.centerx,
                       self.rect.y + (config.tile_height * 2))
-        element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
+        element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         return element
 
     def object_under_foot(self, calc_next_position: bool = False):
@@ -102,7 +100,7 @@ class Thing(pygame.sprite.Sprite):
         else:
             pt = (self.rect.centerx,
                   self.rect.y + (config.tile_height * 2))
-        object = next(iter([r for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
+        object = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         return object
 
     def element_at_foot_level(self, calc_next_position: bool = False):
@@ -116,7 +114,7 @@ class Thing(pygame.sprite.Sprite):
         else:
             pt = (self.rect.centerx,
                   self.rect.y + (config.tile_height * 1))
-        obj = next(iter([r for r in self.level.object_list if r.rect.collidepoint(pt)]), None)
+        obj = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         return obj
 
     def get_possible_moves(self):
@@ -127,19 +125,19 @@ class Thing(pygame.sprite.Sprite):
         moves = [False, False, False, False]
 
         over_head = (self._hx, self._hy - config.tile_height)
-        over_head_element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(over_head)]), None)
+        over_head_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(over_head)]), None)
 
         head_tile = (self._hx, self._hy)
-        head_tile_element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(head_tile)]), None)
+        head_tile_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(head_tile)]), None)
 
         under_foot = (self._hx, self._hy + (config.tile_height * 2))
-        under_foot_element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(under_foot)]), None)
+        under_foot_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_foot)]), None)
 
         under_left = (self.rect.centerx - config.tile_width, self._hy + (config.tile_height * 2))
-        under_left_element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(under_left)]), None)
+        under_left_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_left)]), None)
 
         under_right = (self.rect.centerx + config.tile_width, self._hy + (config.tile_height * 2))
-        under_right_element = next(iter([r.name for r in self.level.object_list if r.rect.collidepoint(under_right)]), None)
+        under_right_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_right)]), None)
 
         if over_head_element == 'ladder' and self.name == "hen":
             moves[0] = True
@@ -191,25 +189,33 @@ class Thing(pygame.sprite.Sprite):
         """
         Returns True is Harry is on a lift, uses get_lift_coordinates().
         """
-        return self.get_lift() is not None
+        lift = self.get_lift()
+        if not lift:
+            return False
+
+        remainder = self.rect.centerx % config.tile_width
+        if lift.direction == 'left':
+            print("on left")
+            if remainder < config.tile_width // 2:
+                print("on left, but not enough (less than half)")
+                return False
+        else:
+            print("on right")
+            if remainder > config.tile_width // 2:
+                print("on right, but not enough (less than half)")
+                return False
+
+        print("sticking with lift...")
+        return True
 
     def get_lift(self):
         """
         This checks to see if the tile at Harry's feet is a lift tile.  This
         also checks the next tile if we're not on a full tile.
         """
-        tx, ty = utils.real_to_tile(self._hx + self.hx_velocity, self._hy + self.hy_velocity)
-        remainder = self._hx % tile_width
-        ty -= 1
-        for lift in self.level.lifts:
-            lift_tx, lift_ty = utils.real_to_tile(lift.hx, lift.hy)
-            if tx == lift_tx and ty == lift_ty:
-                return lift
-            if remainder > 0:
-                other_tx = int((self._hx + self.hx_velocity) / tile_width)
-                if other_tx == lift_tx and ty == lift_ty:
-                    return lift
-        return None
+        under_foot = (self.rect.centerx, self._hy + (2 * config.tile_height))
+        element = next(iter([r for r in self.level.lifts if r.rect.collidepoint(under_foot)]), None)
+        return element
 
     def at_feet_by_real(self):
         """
