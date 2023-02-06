@@ -11,9 +11,8 @@ y_tiles = 22
 #
 # normally equate to tile_width = 52, tile_height = 32
 #
-#tile_width = int(window_width / (x_tiles+2))
 tile_width = 52
-tile_height = int(window_height / (y_tiles+8))
+tile_height = 32
 
 #
 # screen limits
@@ -23,12 +22,6 @@ right_limit = 22*tile_width
 bottom_limit = 0*tile_height
 top_limit = 28*tile_height                  # note this one is +4'd to allow Harry to jump and come back!
 top_limit_for_lift = 28*tile_height         # this is where the lift disappears, to respawn at the bottom.
-
-#
-# global width and height values for drawing the tiles/sprites.
-#
-global_w = 5
-global_h = 3
 
 #
 # "physics" values
@@ -47,7 +40,7 @@ max_fall_velocity = tile_height/2
 hen_default_hx_velocity = tile_width / 4
 hen_default_hy_velocity = tile_height / 2
 
-lift_default_hy_velocity = tile_height / 4
+lift_default_hy_velocity = 0 - (tile_height / 6)
 
 #
 # make_it_easy, setting this to True means the level is won,
@@ -69,7 +62,7 @@ hens_are_jumpable = True
 #
 # settings to support debug...
 #
-start_paused = True
+start_paused = False
 debug_display = False
 debug_harry = False
 debug_hens = False

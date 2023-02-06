@@ -32,9 +32,8 @@ if debug_display:
     print(f"tile width={tile_width}, height={tile_height}")
 
 # Ok, lets do this...
-status = Status()
+status = Status(window)
 ctrls = Controls()
-#ctrls.register_handlers(window)
 level = Level(levels[status.game_level], status)
 level.draw()
 
@@ -44,12 +43,20 @@ level.draw()
 # -----------------------------------------------------------------------------
 
 
-#def play_music():
-#    delay = 40  # 2 seconds
-#    while delay:
-#        time.sleep(0.05)
-#        window.update()
-#        delay -= 1
+def get_ready_screen():
+    delay = 40
+    while delay:
+        print(delay)
+        time.sleep(0.05)
+        window.fill([0, 0, 0])
+        text_surface = status._font.render("Get Ready", False, pygame.color.Color('yellow'))
+        window.blit(text_surface, (550, 420))
+        text_surface = status._font.render("Player 1", False, pygame.color.Color('cyan1'))
+        window.blit(text_surface, (565, 480))
+        pygame.display.flip()
+        clock.tick(fps)
+        delay -= 1
+    return
 
 # -----------------------------------------------------------------------------
 # main loop
@@ -65,59 +72,53 @@ while not all_done:
 
         ctrls.process_events()
 
-        while ctrls.paused:
-            #time.sleep(0.1)
-            pygame.display.flip()
-            clock.tick(fps)
-            ctrls.process_events()
-            #window.update()
+        if not ctrls.paused:
 
-        tick = not tick
-        if tick:
-            for hen in level.hens:
-                hen.move()
+            tick = not tick
+            if tick:
+                for hen in level.hens:
+                    hen.move()
 
-        for lift in level.lifts:
-            lift.move()
+            for lift in level.lifts:
+                lift.move()
 
-        if not level.harry.move(ctrls) \
-                or level.check_lift_death():
-            #        or level.check_collision() \
-            #        or status.is_time_up():
-            print("Oopsie!")
-            ##status.game_lives -= 1
-            #play_music()          # or stall for 2 seconds
-            level.reset()
+            if not level.harry.move(ctrls) \
+                    or level.check_lift_death() \
+                    or level.check_collision() \
+                    or status.is_time_up():
+                print("Oopsie!")
+                status.game_lives -= 1
+                # or stall for 2 seconds
+                get_ready_screen()
+                level.reset()
 
-            #if level.are_all_eggs_collected():
-            #    print("Yay!")
-            #    # copy bonus to score
-            #    # update lives (10,000 = 1 life).
-            #    status.update_score_end_of_level(window)
-            #
-            #    # scene change / next level
-            #    level.unload()
-            #
-            #    # stall for a bit...
-            #    play_music()
-            #
-            #    status.game_level += 1
-            #    if status.game_level >= len(levels):
-            #        all_done = True
-            #        break
-            #
-            #    # recreate Level with the next lot of game data.
-            #    level = Level(levels[status.game_level], status)
-            #    level.draw()
-            #    break
+            if level.are_all_eggs_collected():
+                print("Yay!")
+                # copy bonus to score and update lives (10,000 = 1 life).
+                status.update_score_end_of_level(window)
 
-        # normal game tick,
+                # scene change / next level
+                level.unload()
+
+                # stall for a bit...
+                get_ready_screen()
+
+                status.game_level += 1
+                if status.game_level >= len(levels):
+                    all_done = True
+                    break
+
+                # recreate Level with the next lot of game data.
+                level = Level(levels[status.game_level], status)
+                level.draw()
+                break
+
+            status.update()
+
+        # normal game tick,d
         window.fill([0, 0, 0])
-        status.update(level.harry, level.hens)
-        #time.sleep(0.03)
-        #window.update()
-        #window.blit(backdrop, backdropbox)
-        level.object_list.draw(window)
+        status.draw(level.harry, level.hens)
+        level.elements.draw(window)
         level.hens.draw(window)
         level.lifts.draw(window)
         level.harrys.draw(window)
