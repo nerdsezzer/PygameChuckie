@@ -251,6 +251,23 @@ class Harry(Thing):
         self.hy += self.hy_velocity
         return
 
+    def is_ladder(self) -> bool:
+        """
+        Returns True if Harry is in the 'middle' of a ladder.
+        This works by checking the lower / foot tile.
+        """
+        element = self.element_at_foot_level(calc_next_position=True)
+        return element == 'ladder' and utils.middle_of_block(self.hx + self.hx_velocity)
+
+    def get_lift(self):
+        """
+        This checks to see if the tile at Harry's feet is a lift tile.  This
+        also checks the next tile if we're not on a full tile.
+        """
+        point = (self.rect.centerx, self._hy + (2 * config.tile_height))
+        element = next(iter([r for r in self.level.lifts if r.rect.collidepoint(point)]), None)
+        return element
+
     def process_jump(self, w_key_down: bool, s_key_down: bool, prev_delta_hx: int) -> None:
         """
         Updates Harry's coordinates, given that he is jumping.  Do the maths,
@@ -272,46 +289,46 @@ class Harry(Thing):
             self.hy_velocity = config.max_fall_velocity
 
         # work out new position
-        x = self.hx + self.hx_velocity
-        y = self.hy + self.hy_velocity
-        tx, ty = real_to_tile(x, y)
+        #x = self.hx + self.hx_velocity
+        #y = self.hy + self.hy_velocity
+        #tx, ty = real_to_tile(x, y)
 
         #at_foot = self.element_at_foot_level(calc_next_position=True)
         under_foot = self.element_under_foot(calc_next_position=True)
 
         if self.is_going_down() and under_foot == 'floor':
             # he's falling and hits floor.
+            # update x and y, make sure y 'snaps' to the top of the floor tile.
+            self.hx += self.hx_velocity
+            _, self.hy = utils.snap_to_tile(self.hx, self.hy + self.hy_velocity)
+            # recalc deltas
             self.hy_velocity = 0
             self.y_velocity = 0
             self.direction = self.previous_direction
-            self.hx += self.hx_velocity
-            # set y to the top of the floor tile we just landed on.
-            self.hy = (y // tile_height) * tile_height
 
         elif (w_key_down or s_key_down) and self.is_ladder():
             # he's jumping 'through' a ladder, grab it!
+            # update x and y, make sure both snap to the ladder's full tile.
+            self.hx, self.hy = utils.snap_to_tile(self.hx + self.hx_velocity, self.hy + self.hy_velocity)
+            # recalc deltas
             self.hy_velocity = 0
             self.y_velocity = 0
             self.direction = self.previous_direction
-            # snap Harry to the full tile.
-            self.hx, self.hy = tile_to_real(tx, ty)
 
-        elif self.is_lift():
+        elif lift := self.get_lift():
             # he's landed on a 'lift'
-            lift = self.get_lift()
-            print(f"we're going up!! lift at {lift.hx},{lift.hy}")
-            # lift_x, lift_y = lift.hx, lift.hy
+            self.hy = lift.hy - (2 * tile_height)
+            # recalc deltas
             self.hy_velocity = 0
             self.y_velocity = 0
             self.direction = "right" if prev_delta_hx > 0 else "left"
             self.on_lift = True
             self.hy_velocity = config.lift_default_hy_velocity
             self.hx_velocity = 0
-            self.hy = lift._hy - (2 * tile_height)
 
         else:
-            self.hx = x
-            self.hy = y
+            self.hx += self.hx_velocity
+            self.hy += self.hy_velocity
 
         #self.dump_state("jump[a]: ")
         return

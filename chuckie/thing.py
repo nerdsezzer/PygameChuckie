@@ -94,6 +94,13 @@ class Thing(pygame.sprite.Sprite):
         return element
 
     def element_under_foot(self, calc_next_position: bool = False, update_x_only: bool = False):
+        """
+        returns the name of the element two tiles below the thing's current
+        position.
+        :param calc_next_position: "current tile" is the post-move position.
+        :param update_x_only: figure out what tile, using x coord and delta.
+        :return: name of the element or None.
+        """
         if calc_next_position:
             pt = (self.rect.centerx + self.hx_velocity,
                   self.rect.y + self.hy_velocity + (config.tile_height * 2))
@@ -106,16 +113,6 @@ class Thing(pygame.sprite.Sprite):
                       self.rect.y + (config.tile_height * 2))
         element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         return element
-
-    def object_under_foot(self, calc_next_position: bool = False):
-        if calc_next_position:
-            pt = (self.rect.centerx + self.hx_velocity,
-                  self.rect.y + self.hy_velocity + (config.tile_height * 2))
-        else:
-            pt = (self.rect.centerx,
-                  self.rect.y + (config.tile_height * 2))
-        object = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
-        return object
 
     def element_at_foot_level(self, calc_next_position: bool = False, update_x_only: bool = False):
         element = self.object_at_foot_level(calc_next_position, update_x_only)
@@ -169,44 +166,44 @@ class Thing(pygame.sprite.Sprite):
             moves[3] = True
         return moves
 
-    def can_stand_on(self, tx, ty) -> bool:
-        """
+    """def can_stand_on(self, tx, ty) -> bool:
+        ""
         Returns True if thing is standing on a floor or ladder tile.
         i.e. two tiles down from the possed in location.
-        """
+        ""
         if self.level.get(tx, ty-2) == 'floor' \
                 or self.level.get(tx, ty-2) == 'ladder':
             return True
-        return False
+        return False"""
 
-    def is_ladder(self) -> bool:
-        """
+    """def is_ladder(self) -> bool:
+        ""
         Returns True if thing is in the 'middle' of a ladder.  This works
         by checking the bottom/foot tile.
-        """
+        ""
         x = self._hx + self.hx_velocity
         y = self._hy + self.hy_velocity
         tx, ty = real_to_tile(x, y)
-        return self.tile_at(tx, ty-1) == 'ladder' and utils.middle_of_block(x)
+        return self.tile_at(tx, ty-1) == 'ladder' and utils.middle_of_block(x)"""
 
-    def is_floor(self) -> bool:
-        """
+    """def is_floor(self) -> bool:
+        ""
         This checks to see if the tile that Harry is standing on (i.e. ty-2)
         is a floor tile.  It also checks the next tile when it's not a full
         tile check.
-        """
+        ""
         tx, ty = utils.real_to_tile(self._hx + self.hx_velocity, self._hy + self.hy_velocity)
         remainder = self._hx % tile_width
         if remainder > 0:
             other_tx = int((self._hx + self.hx_velocity) / tile_width)
             if self.tile_at(other_tx, ty - 2) == 'floor':
                 return True
-        return self.tile_at(tx, ty-2) == 'floor'
+        return self.tile_at(tx, ty-2) == 'floor'"""
 
-    def is_lift(self) -> bool:
-        """
+    """def is_lift(self) -> bool:
+        ""
         Returns True is Harry is on a lift, uses get_lift_coordinates().
-        """
+        ""
         lift = self.get_lift()
         if not lift:
             return False
@@ -224,28 +221,28 @@ class Thing(pygame.sprite.Sprite):
                 return False
 
         print("sticking with lift...")
-        return True
+        return True"""
 
-    def get_lift(self):
-        """
+    """def get_lift(self):
+        ""
         This checks to see if the tile at Harry's feet is a lift tile.  This
         also checks the next tile if we're not on a full tile.
-        """
+        ""
         under_foot = (self.rect.centerx, self._hy + (2 * config.tile_height))
         element = next(iter([r for r in self.level.lifts if r.rect.collidepoint(under_foot)]), None)
-        return element
+        return element"""
 
-    def at_feet_by_real(self):
-        """
+    """def at_feet_by_real(self):
+        ""
         Is called from Harry's process_move() to check if there's a step
         at Harry's feet that might stop him moving that way.
-        """
+        ""
         x = self._hx + self.hx_velocity
         tx, ty = real_to_tile(x, self._hy)
         remainder = x % tile_width
         if remainder > 0 and self.hx_velocity > 0:
             tx += 1
-        return self.tile_at(tx, ty - 1)
+        return self.tile_at(tx, ty - 1)"""
 
-    def tile_at(self, tx, ty):
-        return self.level.get(tx, ty)
+    """def tile_at(self, tx, ty):
+        return self.level.get(tx, ty)"""

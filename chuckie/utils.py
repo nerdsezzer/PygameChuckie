@@ -2,6 +2,12 @@ import config
 from config import tile_width, tile_height
 
 
+def snap_to_tile(x, y):
+    adj_x = (x // tile_width) * tile_width
+    adj_y = (y // tile_height) * tile_height
+    return adj_x, adj_y
+
+
 def tile_to_real(x, y):
     real_x = x * tile_width
     real_y = y * tile_height
@@ -21,17 +27,17 @@ def real_to_tile(real_x, real_y):
     return x, y
 
 
-def real_x_to_tile(real_x) -> (int, str):
-    """ Returns the tx value and 'p' if its partially in the tile, or 'f' for fully in the tile. """
+"""def real_x_to_tile(real_x) -> (int, str):
+    "" Returns the tx value and 'p' if its partially in the tile, or 'f' for fully in the tile. ""
     remainder = real_x % tile_width
     x = int(real_x / tile_width)
-    return x, "p" if remainder else "f"
+    return x, "p" if remainder else "f" """
 
 
-def real_y_to_tile(real_y):
+"""def real_y_to_tile(real_y):
     remainder = real_y % tile_height
     y = int(real_y / tile_height)
-    return y, "p" if remainder else "f"
+    return y, "p" if remainder else "f" """
 
 
 def top_of_block(real_y):
