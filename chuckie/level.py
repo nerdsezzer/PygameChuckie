@@ -106,7 +106,7 @@ class Level:
 
         # ... then clear and delete all the other elements in the level
         for handle in self.handles.values():
-            handle.clear()
+            handle.kill()
             del handle
         return
 
