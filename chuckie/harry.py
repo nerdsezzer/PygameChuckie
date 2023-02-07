@@ -39,7 +39,7 @@ class Harry(Thing):
         self.rect.x = start_tile_x * config.tile_width
         self.rect.y = start_tile_y * config.tile_height
 
-        self.state = False
+        #self.state = False
         self.on_lift = False
         self.direction = start_direction
         self.previous_direction = "still"
@@ -146,8 +146,11 @@ class Harry(Thing):
         as they have a get_possible_hen_moves() function.
         """
 
+        # we can't move up or down on a lift...
+        if self.on_lift:
+            return False
+
         # if we're not in the middle of a block we can't go up or down, end of.
-        tx, ty = real_to_tile(self.hx, self.hy)
         if not utils.middle_of_block(self.hx):
             return False
 
@@ -165,13 +168,14 @@ class Harry(Thing):
             if under_element == 'floor' and self.is_going_up():
                 return True
 
-            # stop him climbing over the end of the ladder
-            if self.tile_at(tx, ty) != 'ladder' and self.is_going_up():
-                return False
-
             # check under his feet is a ladder, and we're going up!
             if under_element == 'ladder' and self.is_going_up():
                 return True
+
+            # stop him climbing over the end of the ladder
+            upper_element = self.element_at_head_level()
+            if upper_element != 'ladder' and self.is_going_up():
+                return False
 
             # check under his feet is a ladder, we can go down...
             if under_element == 'ladder' and self.is_going_down():
@@ -190,7 +194,7 @@ class Harry(Thing):
         keys are pressed.
         """
         if self.direction == 'jump':
-            # this stops the 'double jump' bug...
+            # this fixes the 'double(buffered) jump' bug... also needed in pygame version.
             ctrls.space_down = False
             return
 
@@ -198,29 +202,24 @@ class Harry(Thing):
         self.hy_velocity = 0 if not self.on_lift else config.lift_default_hy_velocity
 
         if ctrls.a_down:
-            self.state = True
             self.direction = 'left'
             self.hx_velocity = 0 - config.harry_default_hx_velocity
 
         if ctrls.d_down:
-            self.state = True
             self.direction = 'right'
             self.hx_velocity = config.harry_default_hx_velocity
 
-        if ctrls.w_down:
-            self.state = True
+        if ctrls.w_down and not self.on_lift:
             self.direction = 'up'
             self.hy_velocity = 0 - config.harry_default_hy_velocity
 
-        if ctrls.s_down:
-            self.state = True
+        if ctrls.s_down and not self.on_lift:
             self.direction = 'down'
             self.hy_velocity = config.harry_default_hy_velocity
 
         if ctrls.space_down:
             ctrls.space_down = False
             self.direction = "jump"
-            self.state = True
             self.y_velocity = jump_height
             self.hy_velocity = self.y_velocity
 
@@ -228,23 +227,19 @@ class Harry(Thing):
 
     def process_fall(self) -> None:
         """
-        Updates Harry's coordinates, given that his state is falling.
-        Check to see if he lands on a floor tile, updates state if this
-        happens.
+        Updates Harry's coordinates, given that he is falling.  Check to see if
+        he lands on a floor tile, updates direction and deltas if this happens.
         """
         # work out new position
         self.hy += self.hy_velocity
 
         # check to see if we've landed.
-        #tx, ty = real_to_tile(self.hx, self.hy)
-        #if utils.top_of_block(self.hy) and (self.tile_at(tx, ty-2) == 'floor' or self.tile_at(tx, ty-2) == 'ladder'):
         under_element = self.element_under_foot(calc_next_position=False)
         if under_element == 'floor':
             print("landed.")
-            self.direction = "still"
+            self.direction = self.previous_direction
             self.y_velocity = 0
             self.hy_velocity = 0
-            self.state = False
         return
 
     def process_lift(self) -> None:
@@ -258,22 +253,21 @@ class Harry(Thing):
 
     def process_jump(self, w_key_down: bool, s_key_down: bool, prev_delta_hx: int) -> None:
         """
-        Updates Harry's coordinates, given that he is jumping.
-        Do the maths, update his current location, and check to see
-        if either he can grab a ladder as he flies past, or whether
-        he's landed.
+        Updates Harry's coordinates, given that he is jumping.  Do the maths,
+        update his current location, and check to see if either he can grab a
+        ladder as he flies past, or whether he's landed.
         """
         self.y_velocity += gravity
         self.hy_velocity = self.y_velocity
         if self.on_lift:
             # we need an extra boost when jumping on or from a lift
             print("jumping from lift... double oomph")
-            self.hy_velocity += (2*config.lift_default_hy_velocity)
+            self.hy_velocity += 2 * config.lift_default_hy_velocity
             self.on_lift = False
 
         #self.dump_state("jump[b]: ")
 
-        # limit the fall velocity, or it'll make Harry miss floors.
+        # limit the fall velocity, or he might 'miss' floor tiles.
         if self.hy_velocity > config.max_fall_velocity:
             self.hy_velocity = config.max_fall_velocity
 
@@ -290,7 +284,7 @@ class Harry(Thing):
             self.hy_velocity = 0
             self.y_velocity = 0
             self.direction = self.previous_direction
-            self.hx = x
+            self.hx += self.hx_velocity
             # set y to the top of the floor tile we just landed on.
             self.hy = (y // tile_height) * tile_height
 
@@ -341,8 +335,9 @@ class Harry(Thing):
             if not self.check_can_move_sideways():
                 self.hx_velocity = 0
             else:
-                if self.element_at_foot_level(True) == 'floor':
+                if self.element_at_foot_level(calc_next_position=False, update_x_only=True) == 'floor':
                     # harry walked into a wall at his feet.
+                    self.previous_direction = self.direction
                     self.direction = "still"
                     self.hx_velocity = 0
                 else:
@@ -354,6 +349,7 @@ class Harry(Thing):
                             if (lift.direction == 'left' and remainder < (tile_width//4)) \
                                     or (lift.direction == 'right' and remainder > 3 * (tile_width//4)):
                                 print("Falling off a lift.")
+                                self.previous_direction = self.direction
                                 self.direction = 'falling'
                                 self.on_lift = False
                                 self.hx_velocity = 0
@@ -365,8 +361,10 @@ class Harry(Thing):
 
                     # ... or off the edge of a floor tile?
                     elif utils.middle_of_block(self.hx) \
-                            and not self.element_under_foot(calc_next_position=False, update_x_only=True):
+                            and not (self.element_under_foot(calc_next_position=False, update_x_only=True) == 'floor'
+                                or self.element_under_foot(calc_next_position=False, update_x_only=True) == 'ladder'):
                         print("Falling")
+                        self.previous_direction = self.direction
                         self.direction = 'falling'
                         self.on_lift = False
                         self.hx_velocity = 0
@@ -408,9 +406,6 @@ class Harry(Thing):
         if self.direction != "falling":
             self.update_based_on_controls(ctrls)
 
-        if self.state is False:
-            return True
-
         if self.hx_velocity == 0 and self.hy_velocity == 0:
             return True
 
@@ -437,25 +432,19 @@ class Harry(Thing):
             return False
 
         # check for any consumables!
-        tx, ty = real_to_tile(self.hx, self.hy)
-
-        # check the tile we're most on...
-        remainder = self.hx % tile_width
-        if remainder > 0:
-            tx = round(self.hx / tile_width)
-
-        # ... to see if there's anything to collect/pickup.
         element = self.object_at_foot_level(calc_next_position=False)
         if element and element.name == 'egg':
             self.level.consume_egg(element)
         if element and element.name == "grain":
             self.level.consume_grain(element)
 
-        element = self.object_under_foot(calc_next_position=False)
-        if element and element.name == 'egg':
-            self.level.consume_egg(element)
-        if element and element.name == "grain":
-            self.level.consume_grain(element)
+        # @todo this is not the best fix, it's to stop him walking on eggs that are next to step drops
+        # be best if he didnt walk on eggs!
+        #element = self.object_under_foot(calc_next_position=False)
+        #if element and element.name == 'egg':
+        #    self.level.consume_egg(element)
+        #if element and element.name == "grain":
+        #    self.level.consume_grain(element)
 
         return True
 
