@@ -29,7 +29,7 @@ class Controls:
                     self.quit = True
 
             if event.type == pygame.KEYDOWN:
-                if event.key == ord('p'):
+                if event.key == ord('p') or event.key == pygame.K_ESCAPE:
                     self.toggle_pause()
                 if event.key == ord('w'):
                     self.move_up()
