@@ -47,6 +47,12 @@ class Harry(Thing):
         self.draw()
         return
 
+    def __str__(self):
+        str = super().__str__()
+        return f"{str}, " \
+               f"calc'd=[{(self._hx / tile_width):.2f},{(self._hy / tile_height):.2f}], " \
+               f"v_velocity={self.y_velocity}, on_lift={self.get_lift() != None}"
+
     def draw(self):
         """
         Figure out what sprite image is needed, Harry has two modes, up-down or
@@ -439,7 +445,7 @@ class Harry(Thing):
 
         # when we get here, self.hx and self.hy will have been updated.
         if config.debug_harry:
-            self.dump_state("after:  ")
+            print(self)
 
         self.draw()
 

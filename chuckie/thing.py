@@ -42,14 +42,22 @@ class Thing(pygame.sprite.Sprite):
         self.rect.y = value
         return
 
+    def __str__(self):
+        tx, ty = real_to_tile(self._hx, self._hy)
+        return f"[{self.name}] " \
+               f"x,y=({self._hx:.0f}, {self._hy:.0f})->[{tx:02d}, {ty:02d}], " \
+               f"dx={self.hx_velocity:.2f}, dy={self.hy_velocity:.2f}, '{self.direction}'"
+
     def get_state(self):
-        (tx, ty) = real_to_tile(self._hx, self._hy)
-        lift = f"(lift)" if self.on_lift else ""
-        return f"[{self.name}] {self.direction}{lift}: x,y=({self._hx:.2f},{self._hy:.2f}), " \
-               f"tile=[{tx},{ty}], calc'd=[{(self._hx/tile_width):.2f},{(self._hy/tile_height):.2f}], " \
-               f"dx={self.hx_velocity:.2f}, dy={self.hy_velocity:.2f}, y_velocity={self.y_velocity:.2f}, " \
-               f"underfoot='{self.element_under_foot()}', prev={self.previous_direction})"
-               #f"underfoot='{self.tile_at(tx, ty-2)}', prev={self.previous_direction})"
+        #(tx, ty) = real_to_tile(self._hx, self._hy)
+        #lift = f" on_lift = True" if self.on_lift else ""
+        #str = super().__str__()
+        #return str + \
+        #       f"calc'd=[{(self._hx / tile_width):.2f},{(self._hy / tile_height):.2f}]" \
+        #       f"y_velocity={self.y_velocity:.2f}, " \
+        #       f"underfoot='{self.element_under_foot()}', prev={self.previous_direction})"
+        #       #f"underfoot='{self.tile_at(tx, ty-2)}', prev={self.previous_direction})"
+        return self.__str__()
 
     def dump_state(self, prefix=""):
         print(prefix+self.get_state())

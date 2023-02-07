@@ -25,8 +25,11 @@ class Status:
         pygame.font.init()
         self._font = pygame.font.SysFont('Arial', 36, 'normal')
         self._colour = (255, 165, 0)
-
         return
+
+    def __repr__(self):
+        return f"level={self.game_level}, lives left={self.game_lives}, time={self.game_time}, " \
+               f"bonus={self.game_bonus}, score={self.game_score}, paused={self.game_pause}"
 
     def is_time_up(self):
         return self.game_time <= 0

@@ -27,19 +27,6 @@ def real_to_tile(real_x, real_y):
     return x, y
 
 
-"""def real_x_to_tile(real_x) -> (int, str):
-    "" Returns the tx value and 'p' if its partially in the tile, or 'f' for fully in the tile. ""
-    remainder = real_x % tile_width
-    x = int(real_x / tile_width)
-    return x, "p" if remainder else "f" """
-
-
-"""def real_y_to_tile(real_y):
-    remainder = real_y % tile_height
-    y = int(real_y / tile_height)
-    return y, "p" if remainder else "f" """
-
-
 def top_of_block(real_y):
     return not real_y % config.tile_height
 

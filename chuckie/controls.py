@@ -19,6 +19,18 @@ class Controls:
         self.quit = False
         return
 
+    def __str__(self):
+        s = "["
+        s += "Up" if self.w_down else "--"
+        s += "|"
+        s += "Dw" if self.s_down else "--"
+        s += "|"
+        s += "Lf" if self.a_down else "--"
+        s += "|"
+        s += "Rt" if self.d_down else "--"
+        s += "]"
+        return f"{s}, space={self.space_down}, paused={self.paused}"
+
     def process_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

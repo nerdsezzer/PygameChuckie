@@ -28,9 +28,14 @@ class Lift(Thing):
         (self.hx, self.hy) = utils.tile_to_real(start_tile_x, start_tile_y)
         return
 
+    def __str__(self):
+        name = "lft" + str(id(self))[-2:]
+        rest = super().__str__()
+        return "[" + name + "]" + rest[6:]
+
     def __repr__(self):
-        tx, ty = utils.real_to_tile(self.rect.x, self.rect.y)
-        return f"<Lift ({self.rect.x:.2f}, {self.rect.y:.2f}) [{tx},{ty}] {self.direction})>"
+        tx, ty = utils.real_to_tile(self.hx, self.hy)
+        return f"<Lift ({self.hx}, {self.hy}) [{tx},{ty}] speed = {self.hy_velocity}, {self.direction})>"
 
     @property
     def hy(self):
@@ -52,5 +57,5 @@ class Lift(Thing):
             self.hy = Lift.LIFT_REAPPEARS_AT
 
         if config.debug_lifts:
-            self.dump_state("lift: ")
+            print(self)
         return

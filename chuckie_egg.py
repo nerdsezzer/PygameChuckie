@@ -11,22 +11,16 @@ from chuckie.level_data import levels
 
 
 # Set up the game window
-#window = turtle.Screen()
-#window.tracer(0)
-#window.mode("standard")
-#window.setup(config.window_width, config.window_height)
-#window.title("Sezzer's Revenge... ChuckieEgg 2023!")
 window = pygame.display.set_mode([config.window_width, config.window_height])
 clock = pygame.time.Clock()
 pygame.init()
-
 fps = 20
 
 
 if debug_display:
     """
     Screen width=1280, height=960
-    tile width=53, height=32
+    tile width=52, height=32
     """
     print(f"Screen width={window.get_width()}, height={window.get_height()}")
     print(f"tile width={tile_width}, height={tile_height}")
@@ -46,7 +40,7 @@ level.draw()
 def get_ready_screen():
     delay = 40
     while delay:
-        print(delay)
+        # print(delay)
         time.sleep(0.05)
         window.fill([0, 0, 0])
         text_surface = status._font.render("Get Ready", False, pygame.color.Color('yellow'))
@@ -131,6 +125,6 @@ while not all_done:
         break
 
 print("bye!")
-#turtle.done()
+
 
 

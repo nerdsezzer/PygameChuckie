@@ -53,6 +53,10 @@ class Hen(Thing):
         self.move()
         return
 
+    def __str__(self):
+        name = "hen" + str(id(self))[-2:]
+        return "[" + name + "]" + super().__str__()[5:]
+
     def draw(self):
         """
         Figure out which image to display, there are two for left, right (stretched out
@@ -174,10 +178,7 @@ class Hen(Thing):
             can_go_right = possible[3]
 
             if config.debug_hens:
-                hen_id = str(id(self))
-                self.debug(f"{hen_id}[{tx},{ty}]: "
-                           f"up={can_go_up}, down={can_go_down}, left={can_go_left}, right={can_go_right}, "
-                           f"dx={self.hx_velocity}, dy={self.hy_velocity}, direction={self.direction}, was={self.previous_direction}")
+                print(self)
 
             options = sum(possible)
             if options == 1:

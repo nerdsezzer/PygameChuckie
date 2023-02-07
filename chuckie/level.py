@@ -33,6 +33,10 @@ class Level:
         self.eggs_collected = 0
         return
 
+    def __repr__(self):
+        return f"level={self.status.game_level}, lifts={len(self.lifts)//2}, " \
+               f"hens={len(self.hens)}, eggs collected={self.eggs_collected}/{self.level_egg_count}"
+
     @property
     def harry(self):
         return self.harrys.sprites()[0]
