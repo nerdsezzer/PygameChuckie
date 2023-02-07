@@ -10,7 +10,7 @@ class Thing(pygame.sprite.Sprite):
     def __init__(self, name: str, level):
         pygame.sprite.Sprite.__init__(self)
         self.level = level
-        self.state = False
+        #self.state = False
         self.direction = ""
         self.animation_step = 1
         self._hx = 0
@@ -48,7 +48,8 @@ class Thing(pygame.sprite.Sprite):
         return f"[{self.name}] {self.direction}{lift}: x,y=({self._hx:.2f},{self._hy:.2f}), " \
                f"tile=[{tx},{ty}], calc'd=[{(self._hx/tile_width):.2f},{(self._hy/tile_height):.2f}], " \
                f"dx={self.hx_velocity:.2f}, dy={self.hy_velocity:.2f}, y_velocity={self.y_velocity:.2f}, " \
-               f"underfoot='{self.tile_at(tx, ty-2)}')"
+               f"underfoot='{self.element_under_foot()}', prev={self.previous_direction})"
+               #f"underfoot='{self.tile_at(tx, ty-2)}', prev={self.previous_direction})"
 
     def dump_state(self, prefix=""):
         print(prefix+self.get_state())
@@ -79,6 +80,19 @@ class Thing(pygame.sprite.Sprite):
             return True
         return False
 
+    def element_at_head_level(self):
+        #if calc_next_position:
+        #    pt = (self.rect.centerx + self.hx_velocity,
+        #          self.rect.y + self.hy_velocity + (config.tile_height * 1))
+        #else:
+        #    if update_x_only:
+        #        pt = (self.rect.centerx + self.hx_velocity,
+        #              self.rect.y + (config.tile_height * 1))
+        #    else:
+        pt = (self.rect.centerx, self.rect.y)
+        element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(pt)]), None)
+        return element
+
     def element_under_foot(self, calc_next_position: bool = False, update_x_only: bool = False):
         if calc_next_position:
             pt = (self.rect.centerx + self.hx_velocity,
@@ -103,17 +117,21 @@ class Thing(pygame.sprite.Sprite):
         object = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         return object
 
-    def element_at_foot_level(self, calc_next_position: bool = False):
-        element = self.object_at_foot_level(calc_next_position)
+    def element_at_foot_level(self, calc_next_position: bool = False, update_x_only: bool = False):
+        element = self.object_at_foot_level(calc_next_position, update_x_only)
         return element.name if element else None
 
-    def object_at_foot_level(self, calc_next_position: bool = False):
+    def object_at_foot_level(self, calc_next_position: bool = False, update_x_only: bool = False):
         if calc_next_position:
             pt = (self.rect.centerx + self.hx_velocity,
                   self.rect.y + self.hy_velocity + (config.tile_height * 1))
         else:
-            pt = (self.rect.centerx,
-                  self.rect.y + (config.tile_height * 1))
+            if update_x_only:
+                pt = (self.rect.centerx + self.hx_velocity,
+                      self.rect.y + (config.tile_height * 1))
+            else:
+                pt = (self.rect.centerx,
+                      self.rect.y + (config.tile_height * 1))
         obj = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         return obj
 
