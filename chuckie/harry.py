@@ -14,7 +14,7 @@ class Harry(Thing):
     """
 
     def __init__(self, level, start_tile_x, start_tile_y, start_direction):
-        super().__init__('harry', level)
+        super().__init__('harry', level, start_tile_x, start_tile_y, start_direction)
 
         self.images_left_right = []
         for i in range(1, 5):
@@ -32,25 +32,27 @@ class Harry(Thing):
 
         self.images = self.images_left_right
         self.image = self.images[0]
-        self.animation_step = -1
+        #self.animation_step = -1
+        self.init_rect(self.image, start_tile_x, start_tile_y)
 
-        print(f"putting harry at [{start_tile_x}, {start_tile_y}]")
-        self.rect = self.image.get_rect()
-        self.rect.x = start_tile_x * config.tile_width
-        self.rect.y = start_tile_y * config.tile_height
+        #print(f"putting harry at [{start_tile_x}, {start_tile_y}]")
+        #self.rect = self.image.get_rect()
+        #self.rect.x = start_tile_x * config.tile_width
+        #self.rect.y = start_tile_y * config.tile_height
 
         #self.state = False
         self.on_lift = False
-        self.direction = start_direction
-        self.previous_direction = "still"
-        self.hx, self.hy = tile_to_real(start_tile_x, start_tile_y)
+        #self.direction = start_direction
+        #self.previous_direction = "still"
+        #self.hx, self.hy = tile_to_real(start_tile_x, start_tile_y)
+
         self.draw()
         return
 
     def __str__(self):
         str = super().__str__()
         return f"{str}, " \
-               f"calc'd=[{(self._hx / tile_width):.2f},{(self._hy / tile_height):.2f}], " \
+               f"calc'd=[{(self.hx / tile_width):.2f},{(self.hy / tile_height):.2f}], " \
                f"v_velocity={self.y_velocity}, on_lift={self.get_lift() != None}"
 
     def draw(self):
@@ -270,7 +272,7 @@ class Harry(Thing):
         This checks to see if the tile at Harry's feet is a lift tile.  This
         also checks the next tile if we're not on a full tile.
         """
-        point = (self.rect.centerx, self._hy + (2 * config.tile_height))
+        point = (self.rect.centerx, self.hy + (2 * config.tile_height))
         element = next(iter([r for r in self.level.lifts if r.rect.collidepoint(point)]), None)
         return element
 

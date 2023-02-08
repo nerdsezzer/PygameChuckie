@@ -10,7 +10,7 @@ import chuckie.utils as utils
 class Hen(Thing):
 
     def __init__(self, name: str, level, start_tile_x, start_tile_y, direction):
-        super().__init__(name, level)
+        super().__init__(name, level, start_tile_x, start_tile_y, direction)
 
         self.images_left_right = []
         for i in range(1, 5):
@@ -32,23 +32,24 @@ class Hen(Thing):
             self.images_up_down.append(img)
         self.images = self.images_left_right
         self.image = self.images[0]
-        self.animation_step = 0
+        #self.animation_step = 0
+        self.init_rect(self.image, start_tile_x, start_tile_y)
 
         print(f"putting an hen at [{start_tile_x}, {start_tile_y}] => {id(self)}")
-        self.rect = self.image.get_rect()
-        self.rect.x = start_tile_x * config.tile_width
-        self.rect.y = start_tile_y * config.tile_height
+        #self.rect = self.image.get_rect()
+        #self.rect.x = start_tile_x * config.tile_width
+        #self.rect.y = start_tile_y * config.tile_height
 
         self.random = Random()
         self.random.seed()
-        self.state = True
+        #self.state = True
         self.actions = [self.move_up, self.move_down, self.move_left, self.move_right]
 
-        self.direction = direction
-        self.previous_direction = direction
+        #self.direction = direction
+        #self.previous_direction = direction
 
         self.hx_velocity = config.hen_default_hx_velocity if direction == "right" else 0-config.hen_default_hx_velocity
-        (self.hx, self.hy) = utils.tile_to_real(start_tile_x, start_tile_y)
+        #(self.hx, self.hy) = utils.tile_to_real(start_tile_x, start_tile_y)
 
         self.move()
         return

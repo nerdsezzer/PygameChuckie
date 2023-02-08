@@ -7,20 +7,24 @@ import chuckie.utils as utils
 
 class Thing(pygame.sprite.Sprite):
 
-    def __init__(self, name: str, level):
+    def __init__(self, name: str, level, start_tile_x, start_tile_y, start_direction):
         pygame.sprite.Sprite.__init__(self)
         self.level = level
-        #self.state = False
-        self.direction = ""
-        self.animation_step = 1
-        self._hx = 0
-        self._hy = 0
+        self._hx, self._hy = utils.tile_to_real(start_tile_x, start_tile_y)
         self.hy_velocity = 0
         self.hx_velocity = 0
         self.y_velocity = 0
         self.name = name
         self.rect = None
+        self.direction = start_direction
+        self.previous_direction = "still"
+        self.animation_step = 1
         return
+
+    def init_rect(self, image, start_tile_x, start_tile_y):
+        self.rect = image.get_rect()
+        self.rect.x = start_tile_x * config.tile_width
+        self.rect.y = start_tile_y * config.tile_height
 
     @property
     def hx(self):

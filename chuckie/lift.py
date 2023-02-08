@@ -12,20 +12,21 @@ class Lift(Thing):
     LIFT_REAPPEARS_AT = (27 * config.tile_height)
 
     def __init__(self, level, start_tile_x, start_tile_y, direction):
-        super().__init__('lift', level)
+        super().__init__('lift', level, start_tile_x, start_tile_y, direction)
 
         file = "lift-left.png" if direction == "left" else "lift-right.png"
         self.image = pygame.image.load(os.path.join('.', 'images', file)).convert()
         if config.debug_lifts:
             print(f"putting a lift at [{start_tile_x}, {start_tile_y}]")
-        self.rect = self.image.get_rect()
-        self.rect.x = start_tile_x * config.tile_width
-        self.rect.y = start_tile_y * config.tile_height
+        self.init_rect(self.image, start_tile_x, start_tile_y)
+        #self.rect = self.image.get_rect()
+        #self.rect.x = start_tile_x * config.tile_width
+        #self.rect.y = start_tile_y * config.tile_height
 
-        self.state = False
-        self.direction = direction
-        self.previous_direction = "still"
-        (self.hx, self.hy) = utils.tile_to_real(start_tile_x, start_tile_y)
+        #self.state = False
+        #self.direction = direction
+        #self.previous_direction = "still"
+        #(self.hx, self.hy) = utils.tile_to_real(start_tile_x, start_tile_y)
         return
 
     def __str__(self):
@@ -37,7 +38,7 @@ class Lift(Thing):
         tx, ty = utils.real_to_tile(self.hx, self.hy)
         return f"<Lift ({self.hx}, {self.hy}) [{tx},{ty}] speed = {self.hy_velocity}, {self.direction})>"
 
-    @property
+    """@property
     def hy(self):
         return self._hy
 
@@ -45,7 +46,7 @@ class Lift(Thing):
     def hy(self, value):
         self._hy = value
         self.rect.y = value
-        return
+        return"""
 
     def move(self):
         """
