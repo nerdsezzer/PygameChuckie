@@ -18,7 +18,7 @@ class Thing(pygame.sprite.Sprite):
         self.rect = None
         self.state = 'walking'
         self.direction = start_direction
-        self.animation_step = 1
+        self.frame = 1
         return
 
     def init_rect(self, image, start_tile_x, start_tile_y):

@@ -57,35 +57,34 @@ class Hen(Thing):
         (stretched out to four).  The image arrays are swapped depending on the hen's
         direction or state.
         """
-        self.animation_step += 1
-        if self.animation_step == 4:
-            self.animation_step = 0
+        self.frame += 1
+        if self.frame == 4:
+            self.frame = 0
 
         if self.direction == 'up' or self.direction == 'down':
             self.images = self.images_up_down
-            self.image = self.images[self.animation_step]
+            self.image = self.images[self.frame]
             return
 
         if self.state == 'eating':
             self.images = self.images_eating
-            self.image = self.images[self.animation_step]
-            if self.direction == 'left' and self.animation_step <= 3:
+            self.image = self.images[self.frame]
+            if self.direction == 'left' and self.frame <= 3:
                 self.rect.x -= (1*config.tile_width)
-            if self.animation_step == 3:
-                # end of eating animation run... back to 'normal'
+            if self.frame == 3:
                 self.state = 'walking'
                 self.hx_velocity = config.hen_default_hx_velocity if self.direction == 'right' else 0-config.hen_default_hy_velocity
             if self.direction == 'right':
-                self.image = self.images[self.animation_step]
+                self.image = self.images[self.frame]
             elif self.direction == 'left':
-                self.image = pygame.transform.flip(self.images[self.animation_step], True, False)
+                self.image = pygame.transform.flip(self.images[self.frame], True, False)
             return
 
         self.images = self.images_left_right
         if self.is_going_right():
-            self.image = self.images[self.animation_step]
+            self.image = self.images[self.frame]
         elif self.is_going_left():
-            self.image = pygame.transform.flip(self.images[self.animation_step], True, False)
+            self.image = pygame.transform.flip(self.images[self.frame], True, False)
         return
 
     def choose(self, options):
@@ -226,7 +225,7 @@ class Hen(Thing):
                 self.level.consume_grain(next_element, hen_mode=True)
                 self.hx_velocity = 0
                 self.hy_velocity = 0
-                self.animation_step = -1  # reset the step counter for eating.
+                self.frame = -1  # reset the step counter for eating.
                 self.draw()
                 return
 

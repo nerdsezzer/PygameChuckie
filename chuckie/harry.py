@@ -55,30 +55,30 @@ class Harry(Thing):
         Figure out what sprite image is needed, Harry has two modes, up-down or
         left-right.  Both comprise a set of 4 images.
         """
-        # increment, and wrap if necessary, the animation step.
-        self.animation_step += 1
-        if self.animation_step == 4:
-            self.animation_step = 0
+        # increment, and wrap if necessary, frame value.
+        self.frame += 1
+        if self.frame == 4:
+            self.frame = 0
 
         # make him stand still on the lift.
         if self.on_lift:
-            self.animation_step = 2
+            self.frame = 2
 
         # now figure out which image to use.
         if self.direction == 'right':
-            self.image = self.images_left_right[self.animation_step]
+            self.image = self.images_left_right[self.frame]
 
         elif self.direction == 'left':
-            self.image = pygame.transform.flip(self.images_left_right[self.animation_step], True, False)
+            self.image = pygame.transform.flip(self.images_left_right[self.frame], True, False)
 
         elif self.direction == 'still' or self.state == 'jump' or self.state == 'falling':
             if self.is_going_right():
-                self.image = self.images_left_right[self.animation_step]
+                self.image = self.images_left_right[self.frame]
             elif self.is_going_left():
-                self.image = pygame.transform.flip(self.images_left_right[self.animation_step], True, False)
+                self.image = pygame.transform.flip(self.images_left_right[self.frame], True, False)
 
         elif self.direction == 'up' or self.direction == 'down':
-            self.image = self.images_up_down[self.animation_step]
+            self.image = self.images_up_down[self.frame]
 
         return
 
