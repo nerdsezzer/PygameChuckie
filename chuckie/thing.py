@@ -16,6 +16,7 @@ class Thing(pygame.sprite.Sprite):
         self.y_velocity = 0
         self.name = name
         self.rect = None
+        self.state = "walking"
         self.direction = start_direction
         self.previous_direction = "still"
         self.animation_step = 1
