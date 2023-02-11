@@ -37,11 +37,11 @@ class Hen(Thing):
         if config.debug_hens:
             print(f"putting an hen at [{start_tile_x}, {start_tile_y}] => {id(self)}")
 
+        self.hx_velocity = config.hen_default_hx_velocity if direction == "right" else 0-config.hen_default_hx_velocity
+
         self.random = Random()
         self.random.seed()
         self.actions = [self.move_up, self.move_down, self.move_left, self.move_right]
-
-        self.hx_velocity = config.hen_default_hx_velocity if direction == "right" else 0-config.hen_default_hx_velocity
 
         self.move()
         return
