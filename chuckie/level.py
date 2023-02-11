@@ -81,9 +81,6 @@ class Level:
                     self.lifts.add(Lift(self, x, y, "left"))
                 elif element == '-r':
                     self.lifts.add(Lift(self, x, y, "right"))
-                #else:
-                #    if config.debug_display:
-                #        draw_box(x, y, "DarkSlateGray")
 
                 if handle:
                     self.elements.add(handle)
@@ -120,7 +117,6 @@ class Level:
         is reset.
         """
         self.harry.kill()
-        #del self.harry
 
         for hen in self.hens:
             hen.kill()
@@ -174,6 +170,7 @@ class Level:
         (tx, ty) = utils.real_to_tile(_egg.rect.x, _egg.rect.y)
         egg = self.handles[(tx, ty)]
         egg.kill()
+        self.elements.remove(egg)
         del egg
         del self.handles[(tx, ty)]
         del self.tiles[(tx, ty)]
@@ -190,6 +187,7 @@ class Level:
         (tx, ty) = utils.real_to_tile(_grain.rect.x, _grain.rect.y)
         grain = self.handles[(tx, ty)]
         grain.kill()
+        self.elements.remove(grain)
         del grain
         del self.handles[(tx, ty)]
         del self.tiles[(tx, ty)]
