@@ -1,5 +1,7 @@
 import pygame
+import pygame.midi
 import time
+import threading
 import sys
 
 import config
@@ -8,6 +10,7 @@ from chuckie.controls import Controls
 from chuckie.status import Status
 from chuckie.level import Level
 from chuckie.level_data import levels
+from chuckie.sounds import SoundsThread
 
 
 # Set up the game window
@@ -57,6 +60,12 @@ def get_ready_screen():
 # -----------------------------------------------------------------------------
 
 
+
+pygame.midi.init()
+player = pygame.midi.Output(0)
+sounds = SoundsThread(player)
+sounds.start()
+
 all_done = False
 tick = False
 
@@ -76,7 +85,7 @@ while not all_done:
             for lift in level.lifts:
                 lift.move()
 
-            if not level.harry.move(ctrls) \
+            if not level.harry.move(ctrls, sounds) \
                     or level.check_lift_death() \
                     or level.check_collision() \
                     or status.is_time_up():
@@ -124,7 +133,9 @@ while not all_done:
         print("game over!")
         break
 
-print("bye!")
 
+print("bye!")
+del player
+pygame.midi.quit()
 
 
