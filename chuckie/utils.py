@@ -36,7 +36,7 @@ def middle_of_block(real_x):
 
 
 def is_outside_playable_area(thing):
-    return thing.hx > config.right_limit \
-        or thing.hx < config.left_limit \
-        or thing.hy > config.top_limit \
-        or thing.hy < config.bottom_limit
+    return thing.x > config.right_limit \
+           or thing.x < config.left_limit \
+           or thing.y > config.top_limit \
+           or thing.y < config.bottom_limit
