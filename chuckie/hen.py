@@ -32,24 +32,16 @@ class Hen(Thing):
             self.images_up_down.append(img)
         self.images = self.images_left_right
         self.image = self.images[0]
-        #self.animation_step = 0
         self.init_rect(self.image, start_tile_x, start_tile_y)
 
-        print(f"putting an hen at [{start_tile_x}, {start_tile_y}] => {id(self)}")
-        #self.rect = self.image.get_rect()
-        #self.rect.x = start_tile_x * config.tile_width
-        #self.rect.y = start_tile_y * config.tile_height
+        if config.debug_hens:
+            print(f"putting an hen at [{start_tile_x}, {start_tile_y}] => {id(self)}")
 
         self.random = Random()
         self.random.seed()
-        #self.state = True
         self.actions = [self.move_up, self.move_down, self.move_left, self.move_right]
 
-        #self.direction = direction
-        #self.previous_direction = direction
-
         self.hx_velocity = config.hen_default_hx_velocity if direction == "right" else 0-config.hen_default_hx_velocity
-        #(self.hx, self.hy) = utils.tile_to_real(start_tile_x, start_tile_y)
 
         self.move()
         return
@@ -74,15 +66,19 @@ class Hen(Thing):
             self.image = self.images[self.animation_step]
             return
 
-        if self.direction == 'eating':
+        if self.state == 'eating':
             self.images = self.images_eating
             self.image = self.images[self.animation_step]
+            if self.direction == 'left' and self.animation_step <= 3:
+                self.rect.x -= (1*config.tile_width)
             if self.animation_step == 3:
-                self.direction = self.previous_direction
-
-            if self.previous_direction == 'right':
+                # end of eating animation run... back to 'normal'
+                self.state = 'walking'
+                print(f"done eating, setting state to {self.state}")
+                self.hx_velocity = config.hen_default_hx_velocity if self.direction == 'right' else 0-config.hen_default_hy_velocity
+            if self.direction == 'right':
                 self.image = self.images[self.animation_step]
-            elif self.previous_direction == 'left':
+            elif self.direction == 'left':
                 self.image = pygame.transform.flip(self.images[self.animation_step], True, False)
             return
 
@@ -155,7 +151,7 @@ class Hen(Thing):
         """
         previous = self.direction
 
-        if self.direction != 'eating':
+        if self.state != 'eating':
             # our current tile....
             (tx, ty) = utils.real_to_tile(self.hx, self.hy)
 
@@ -222,18 +218,20 @@ class Hen(Thing):
                 func = self.actions[self.choose(possible)]
                 func()
 
-            next_tile = (self.hx + self.hx_velocity, self.hy + self.hy_velocity + config.tile_height)
+            if self.is_going_left():
+                next_tile = (self.hx + self.hx_velocity, self.hy + self.hy_velocity + config.tile_height)
+            else:
+                next_tile = (self.hx + (1*config.tile_width), self.hy + self.hy_velocity + config.tile_height)
             next_element = next(iter([r for r in self.level.elements if r.rect.collidepoint(next_tile)]), None)
             if next_element and next_element.name == 'grain':
-                self.previous_direction = self.direction
-                self.direction = 'eating'
+                self.state = 'eating'
+                print(f"about to be 'eating' setting state to {self.state}")
                 self.level.consume_grain(next_element, hen_mode=True)
-                if self.is_going_left():
-                    self.hx -= config.tile_width
                 self.hx_velocity = 0
                 self.hy_velocity = 0
-                self.animation_step = 0  # reset the step counter for eating.
+                self.animation_step = -1  # reset the step counter for eating.
                 self.draw()
+                return
 
         if self.direction != previous:
             self.previous_direction = previous
