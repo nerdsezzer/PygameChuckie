@@ -29,16 +29,16 @@ class Lift(Thing):
         return "[" + name + "]" + rest[6:]
 
     def __repr__(self):
-        tx, ty = utils.real_to_tile(self.hx, self.hy)
-        return f"<Lift ({self.hx}, {self.hy}) [{tx},{ty}] speed = {self.hy_velocity}, {self.direction})>"
+        tx, ty = utils.real_to_tile(self.x, self.hy)
+        return f"<Lift ({self.x}, {self.hy}) [{tx},{ty}] speed = {self.dy}, {self.direction})>"
 
     def move(self):
         """
         move the lifts, upwards.  If they reach the top, they respawn at the
         bottom of the screen.
         """
-        self.hy += config.lift_default_hy_velocity
-        if self.hy < Lift.LIFT_DISAPPEARS_AT:
+        self.y += config.lift_default_hy_velocity
+        if self.y < Lift.LIFT_DISAPPEARS_AT:
             self.hy = Lift.LIFT_REAPPEARS_AT
 
         if config.debug_lifts:
