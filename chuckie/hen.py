@@ -74,7 +74,6 @@ class Hen(Thing):
             if self.animation_step == 3:
                 # end of eating animation run... back to 'normal'
                 self.state = 'walking'
-                print(f"done eating, setting state to {self.state}")
                 self.hx_velocity = config.hen_default_hx_velocity if self.direction == 'right' else 0-config.hen_default_hy_velocity
             if self.direction == 'right':
                 self.image = self.images[self.animation_step]
@@ -149,8 +148,6 @@ class Hen(Thing):
         The walking Hens...they stick to a fairly predicable pattern
         (thanks Dan!)
         """
-        previous = self.direction
-
         if self.state != 'eating':
             # our current tile....
             (tx, ty) = utils.real_to_tile(self.hx, self.hy)
@@ -210,9 +207,9 @@ class Hen(Thing):
                 # as they were going before they got on the ladder.
                 if sum(possible) > 1:
                     if self.hy_velocity != 0:  # we were going up or down.
-                        if can_go_left and self.previous_direction == 'left':
+                        if can_go_left and self.direction == 'left':
                             possible[3] = False
-                        if can_go_right and self.previous_direction == 'right':
+                        if can_go_right and self.direction == 'right':
                             possible[2] = False
 
                 func = self.actions[self.choose(possible)]
@@ -232,9 +229,6 @@ class Hen(Thing):
                 self.animation_step = -1  # reset the step counter for eating.
                 self.draw()
                 return
-
-        if self.direction != previous:
-            self.previous_direction = previous
 
         self.hx += self.hx_velocity
         self.hy += self.hy_velocity
