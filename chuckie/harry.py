@@ -32,8 +32,7 @@ class Harry(Thing):
             img.set_colorkey((0, 0, 0))
             self.images_up_down.append(img)
 
-        self.images = self.images_left_right
-        self.image = self.images[0]
+        self.image = self.images_left_right[0]
         self.init_rect(self.image, start_tile_x, start_tile_y)
 
         if config.debug_harry:
@@ -56,15 +55,9 @@ class Harry(Thing):
         Figure out what sprite image is needed, Harry has two modes, up-down or
         left-right.  Both comprise a set of 4 images.
         """
-        # which set of images are we using?
-        if (self.direction == 'up' and self.is_going_up()) or (self.direction == 'down' and self.is_going_down()):
-            self.images = self.images_up_down
-        else:
-            self.images = self.images_left_right
-
         # increment, and wrap if necessary, the animation step.
         self.animation_step += 1
-        if self.animation_step == len(self.images):
+        if self.animation_step == 4:
             self.animation_step = 0
 
         # make him stand still on the lift.
@@ -72,24 +65,21 @@ class Harry(Thing):
             self.animation_step = 2
 
         # now figure out which image to use.
-        if self.is_going_right() \
-                or (self.on_lift and self.direction == 'right') \
-                or (self.state == 'falling' and self.direction == 'right'):
-            self.image = self.images[self.animation_step]
+        if self.direction == 'right':
+            self.image = self.images_left_right[self.animation_step]
 
-        elif self.is_going_left() \
-                or (self.on_lift and self.direction == 'left')\
-                or (self.state == 'falling' and self.direction == 'left'):
-            self.image = pygame.transform.flip(self.images[self.animation_step], True, False)
+        elif self.direction == 'left':
+            self.image = pygame.transform.flip(self.images_left_right[self.animation_step], True, False)
 
-        elif (self.is_going_up() or self.is_going_down()) and self.state != 'jump':
-            self.image = self.images[self.animation_step]
+        elif self.direction == 'still' or self.state == 'jump' or self.state == 'falling':
+            if self.is_going_right():
+                self.image = self.images_left_right[self.animation_step]
+            elif self.is_going_left():
+                self.image = pygame.transform.flip(self.images_left_right[self.animation_step], True, False)
 
-        else:
-            if self.direction == 'right':
-                self.image = self.images[self.animation_step]
-            elif self.direction == 'left':
-                self.image = pygame.transform.flip(self.images[self.animation_step], True, False)
+        elif self.direction == 'up' or self.direction == 'down':
+            self.image = self.images_up_down[self.animation_step]
+
         return
 
     def check_can_move_sideways(self) -> bool:
@@ -302,6 +292,7 @@ class Harry(Thing):
             # update x and y, make sure y 'snaps' to the top of the floor tile.
             self.hx += self.hx_velocity
             _, self.hy = utils.snap_to_tile(self.hx, self.hy + self.hy_velocity)
+            self.direction = "right" if prev_delta_hx > 0 else "left"
             self.hy_velocity = 0
             self.y_velocity = 0
             self.state = 'still'
@@ -347,6 +338,7 @@ class Harry(Thing):
             # check if we can make a sideways move...
             if not self.check_can_move_sideways():
                 self.hx_velocity = 0
+                self.direction = 'still'
             else:
                 if self.element_at_foot_level(calc_next_position=False, update_x_only=True) == 'floor':
                     # harry walked into a wall at his feet.
@@ -389,6 +381,7 @@ class Harry(Thing):
                 self.hy += self.hy_velocity
             else:
                 self.hy_velocity = 0
+                self.direction = 'still'
 
         # self.dump_state("after:  ")
         return
