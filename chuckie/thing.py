@@ -27,30 +27,47 @@ class Thing(pygame.sprite.Sprite):
         self.rect.y = start_tile_y * config.tile_height
 
     @property
-    def hx(self):
+    def x(self):
         return self._hx
 
-    @hx.setter
-    def hx(self, value):
+    @x.setter
+    def x(self, value):
         self._hx = value
         self.rect.x = value
         return
 
     @property
-    def hy(self):
+    def y(self):
         return self._hy
 
-    @hy.setter
-    def hy(self, value):
+    @y.setter
+    def y(self, value):
         self._hy = value
         self.rect.y = value
         return
+
+    @property
+    def dx(self):
+        return self.hx_velocity
+
+    @dx.setter
+    def dx(self, value):
+        self.hx_velocity = value
+
+    @property
+    def dy(self):
+        return self.hy_velocity
+
+    @dy.setter
+    def dy(self, value):
+        self.hy_velocity = value
 
     def __str__(self):
         tx, ty = real_to_tile(self._hx, self._hy)
         return f"[{self.name}] " \
                f"x,y=({self._hx:.0f}, {self._hy:.0f})->[{tx:02d}, {ty:02d}], " \
-               f"dx={self.hx_velocity:.2f}, dy={self.hy_velocity:.2f}, '{self.direction}'"
+               f"dx={self.hx_velocity:.2f}, dy={self.hy_velocity:.2f}, " \
+               f"'{self.direction}'|'{self.state}'"
 
     def get_state(self):
         return self.__str__()
@@ -117,14 +134,14 @@ class Thing(pygame.sprite.Sprite):
     def object_at_foot_level(self, calc_next_position: bool = False, update_x_only: bool = False):
         if calc_next_position:
             pt = (self.rect.centerx + self.hx_velocity,
-                  self.rect.y + self.hy_velocity + (config.tile_height * 1))
+                  self.rect.y + self.hy_velocity + config.tile_height)
         else:
             if update_x_only:
                 pt = (self.rect.centerx + self.hx_velocity,
-                      self.rect.y + (config.tile_height * 1))
+                      self.rect.y + config.tile_height)
             else:
                 pt = (self.rect.centerx,
-                      self.rect.y + (config.tile_height * 1))
+                      self.rect.y + config.tile_height)
         obj = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         return obj
 
