@@ -89,7 +89,7 @@ class Hen(Thing):
 
     def choose(self, options):
         decision = self.random.randint(0, sum(options)-1)
-        result = [i for i, n in enumerate(options) if n == True][decision]
+        result = [i for i, n in enumerate(options) if n is True][decision]
         return result
 
     def move_up(self):

@@ -45,8 +45,8 @@ class Harry(Thing):
         return
 
     def __str__(self):
-        str = super().__str__()
-        return f"{str}, " \
+        s = super().__str__()
+        return f"{s}, " \
                f"calc'd=[{(self.x / tile_width):.2f},{(self.y / tile_height):.2f}], " \
                f"v_velocity={self.y_velocity}, on_lift={self.get_lift() is not None}"
 
@@ -324,7 +324,7 @@ class Harry(Thing):
 
     def process_move(self) -> None:
         """
-        Based on delta values which were setup when processing key presses,
+        Based on delta values which were set up when processing key presses,
         decide if the move is valid.
 
         check_can_move_sideways() and check_can_move_up_down() doing alot

@@ -2,8 +2,6 @@ import threading
 import time
 import pygame
 
-import config
-
 
 class Parameters(object):
     def __init__(self, value, note):

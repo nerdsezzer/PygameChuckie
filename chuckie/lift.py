@@ -39,7 +39,7 @@ class Lift(Thing):
         """
         self.y += config.lift_default_hy_velocity
         if self.y < Lift.LIFT_DISAPPEARS_AT:
-            self.hy = Lift.LIFT_REAPPEARS_AT
+            self.y = Lift.LIFT_REAPPEARS_AT
 
         if config.debug_lifts:
             print(self)

@@ -1,7 +1,7 @@
 import pygame.sprite
 
 import config
-from chuckie.utils import real_to_tile, tile_width, tile_height
+from chuckie.utils import real_to_tile
 import chuckie.utils as utils
 
 

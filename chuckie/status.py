@@ -96,38 +96,26 @@ class Status:
             self.header.write(details, align="left", font=self._font)"""
 
         (x, y) = tile_to_real(self._start_left, self._top_level_tile)
-        #self.header.setposition(x + 20, y)
-        #self.header.write("SCORE  "+str(self.game_score).rjust(6, '0'), align="left", font=self._font)
         text_surface = self._font.render("SCORE  "+str(self.game_score).rjust(6, '0'), False, self._colour)
         self._window.blit(text_surface, (x + 20, y))
 
         (x, y) = tile_to_real(self._start_left + 18, self._top_level_tile)
-        #self.header.setposition(x - 20, y)
-        #self.header.write("LIVES  " + str(self.game_lives).rjust(2, ' '), align="left", font=self._font)
         text_surface = self._font.render("LIVES  " + str(self.game_lives).rjust(2, ' '), False, self._colour)
         self._window.blit(text_surface, (x - 20, y))
 
         (x, y) = tile_to_real(self._start_left, self._bottom_level_tile)
-        #self.header.setposition(x + 20, y)
-        #self.header.write("PLAYER  1", align="left", font=self._font)
         text_surface = self._font.render("PLAYER  1", False, self._colour)
         self._window.blit(text_surface, (x + 20, y))
 
         (x, y) = tile_to_real(self._start_left + 6, self._bottom_level_tile)
-        #self.header.setposition(x, y)
-        #self.header.write("LEVEL  " + str(self.game_level + 1).rjust(2, '0'), align="left", font=self._font)
         text_surface = self._font.render("LEVEL  " + str(self.game_level + 1).rjust(2, '0'), False, self._colour)
         self._window.blit(text_surface, (x, y))
 
         (x, y) = tile_to_real(self._start_left + 12, self._bottom_level_tile)
-        #self.header.setposition(x - 20, y)
-        #self.header.write("BONUS  " + str(self.game_bonus).rjust(2, '0'), align="left", font=self._font)
         text_surface = self._font.render("BONUS  " + str(self.game_bonus).rjust(2, '0'), False, self._colour)
         self._window.blit(text_surface, (x - 20, y))
 
         (x, y) = tile_to_real(self._start_left + 18, self._bottom_level_tile)
-        #self.header.setposition(x - 20, y)
-        #self.header.write("TIME  " + str(int(self.game_time)).rjust(2, '0'), align="left", font=self._font)
         text_surface = self._font.render("TIME  " + str(int(self.game_time)).rjust(2, '0'), False, self._colour)
         self._window.blit(text_surface, (x - 20, y))
         return
