@@ -60,10 +60,7 @@ def get_ready_screen():
 # -----------------------------------------------------------------------------
 
 
-
-pygame.midi.init()
-player = pygame.midi.Output(0)
-sounds = SoundsThread(player)
+sounds = SoundsThread()
 sounds.start()
 
 all_done = False
@@ -135,7 +132,7 @@ while not all_done:
 
 
 print("bye!")
-del player
+del sounds.player
 pygame.midi.quit()
 
 
