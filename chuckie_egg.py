@@ -1,8 +1,6 @@
 import pygame
 import pygame.midi
 import time
-import threading
-import sys
 
 import config
 from config import tile_width, tile_height, debug_display
