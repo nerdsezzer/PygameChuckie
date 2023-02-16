@@ -18,18 +18,21 @@ class Hen(Thing):
             img.convert_alpha()
             img.set_colorkey((0, 0, 0))
             self.images_left_right.append(img)
+
         self.images_eating = []
         for i in range(1, 5):
             img = pygame.image.load(os.path.join('.', 'images', 'hen-eating-' + str(i) + '.png')).convert()
             img.convert_alpha()
             img.set_colorkey((0, 0, 0))
             self.images_eating.append(img)
+
         self.images_up_down = []
         for i in range(1, 5):
             img = pygame.image.load(os.path.join('.', 'images', 'hen-ladder-' + str(i) + '.png')).convert()
             img.convert_alpha()
             img.set_colorkey((0, 0, 0))
             self.images_up_down.append(img)
+
         self.images = self.images_left_right
         self.image = self.images[0]
         self.init_rect(self.image, start_tile_x, start_tile_y)
@@ -37,7 +40,7 @@ class Hen(Thing):
         if config.debug_hens:
             print(f"putting an hen at [{start_tile_x}, {start_tile_y}] => {id(self)}")
 
-        self.dx = config.hen_hx_velocity if direction == DIR.RIGHT else 0 - config.hen_hx_velocity
+        self.move_left() if direction == DIR.LEFT else self.move_right()
 
         self.random = Random()
         self.random.seed()
@@ -58,33 +61,30 @@ class Hen(Thing):
         direction or state.
         """
         self.frame += 1
-        if self.frame == 4:
+        if self.frame == 4:     # all the image arrays are 4 in length.
             self.frame = 0
+
+        # all images are three tiles wide, adjust display x to compensate.
+        self.rect.x = self.x # - config.tile_width
+        self.rect.y = self.y
 
         if self.direction == DIR.UP or self.direction == DIR.DOWN:
             self.images = self.images_up_down
             self.image = self.images[self.frame]
             return
 
-        if self.state == STATE.EATING:  # 'eating':
+        if self.state == STATE.EATING:
             self.images = self.images_eating
-            self.image = self.images[self.frame]
-            if self.direction == DIR.LEFT and self.frame <= 3:
-                self.rect.x -= config.tile_width
-            if self.frame == 3:
-                self.state = STATE.WALKING  # 'walking'
-                self.dx = config.hen_hx_velocity if self.direction == DIR.RIGHT else 0 - config.hen_hx_velocity
-            if self.direction == DIR.RIGHT:
-                self.image = self.images[self.frame]
-            elif self.direction == DIR.LEFT:
-                self.image = pygame.transform.flip(self.images[self.frame], True, False)
-            return
+        else:
+            self.images = self.images_left_right
 
-        self.images = self.images_left_right
-        if self.is_going_right():
+        if self.direction == DIR.RIGHT:
             self.image = self.images[self.frame]
-        elif self.is_going_left():
+        elif self.direction == DIR.LEFT:
             self.image = pygame.transform.flip(self.images[self.frame], True, False)
+        else:
+            if config.debug_hens:
+                print("Hen.draw(), dont know what direction to go!")
         return
 
     def choose(self, options):
@@ -135,96 +135,101 @@ class Hen(Thing):
             return False
         return True
 
+    def check_for_grain(self):
+        """
+        Check the next tile to see if it's grain, if it is... eat it!
+        """
+        tx = self.tx - 1 if self.is_going_left() else self.tx + 1
+        next_tile = utils.tile_to_real(tx, self.ty)
+        next_element = next(iter([r for r in self.level.elements if r.rect.collidepoint(next_tile)]), None)
+        if next_element and next_element.name == 'grain':
+            self.level.consume_grain(next_element, hen_mode=True)
+            self.dx = 0
+            self.dy = 0
+            self.state = STATE.EATING
+            self.frame = -1
+            self.draw()
+            return True
+        return False
+
     def move(self) -> None:
         """
         The walking Hens...they stick to a fairly predicable pattern
         (thanks Dan!)
         """
-        if self.state != STATE.EATING:  # 'eating':
-            # just check we're actually going over a tile boundary...
-            # if not process the move, without thinking too hard!
-            if not utils.top_of_block(self.y) or not utils.middle_of_block(self.x):
-                self.x += self.dx
-                self.y += self.dy
-                self.draw()
-                return
+        if self.state == STATE.EATING:
+            if self.frame == 3:
+                self.state = STATE.WALKING
+                self.move_left() if self.direction == DIR.LEFT else self.move_right()
+            self.draw()
+            return
 
-            # get all possible directions we can move in for the current tile.
-            possible = self.get_possible_moves()
-            if sum(possible) == 0:
-                return
+        # just check we're actually going over a tile boundary...
+        # if not process the move, without thinking too hard!
+        if not utils.top_of_block(self.y) or not utils.middle_of_block(self.x):
+            self.x += self.dx
+            self.y += self.dy
+            self.draw()
+            return
 
-            can_go_up = possible[0]
-            can_go_down = possible[1]
-            can_go_left = possible[2]
-            can_go_right = possible[3]
+        # get all possible directions we can move in for the current tile.
+        possible = self.get_possible_moves()
+        if sum(possible) == 0:
+            return
 
+        if config.debug_hens:
+            print(self)
+
+        def can_go(d: DIR):
+            return possible[d.value]
+
+        options = sum(possible)
+        if options == 1:
+            func = self.actions[self.choose(possible)]
+            func()
+        elif options == 2 and self.dx > 0 and can_go(DIR.RIGHT):
+            self.move_right()
+        elif options == 2 and self.dx < 0 and can_go(DIR.LEFT):
+            self.move_left()
+        elif options == 2 and self.dy < 0 and can_go(DIR.UP):
+            self.move_up()
+        elif options == 2 and self.dy > 0 and can_go(DIR.DOWN):
+            self.move_down()
+        elif options == 0:
             if config.debug_hens:
-                print(self)
+                print("Hen.move(), not possible moves available.")
+        else:
+            # fix it for Dan...
+            # if they're walking in one direction, they won't just turn round
+            # at a junction.
+            if can_go(DIR.LEFT) and self.dx < 0:
+                possible[DIR.RIGHT.value] = False
+            if can_go(DIR.RIGHT) and self.dx > 0:
+                possible[DIR.LEFT.value] = False
+            if can_go(DIR.UP) and self.dy > 0:
+                possible[DIR.DOWN.value] = False
+            if can_go(DIR.DOWN) and self.dy < 0:
+                possible[DIR.UP.value] = False
 
-            options = sum(possible)
-            if options == 1:
-                func = self.actions[self.choose(possible)]
-                func()
-            elif options == 2 and self.dx > 0 and can_go_right:
-                self.move_right()
-            elif options == 2 and self.dx < 0 and can_go_left:
-                self.move_left()
-            elif options == 2 and self.dy < 0 and can_go_up:
-                self.move_up()
-            elif options == 2 and self.dy > 0 and can_go_down:
-                self.move_down()
-            elif options == 0:
-                if config.debug_hens:
-                    print("Hen.move(), not possible moves available.")
-            else:
-                # fix it for Dan...
-                # if they're walking in one direction, they won't just turn round
-                # at a junction.
-                if can_go_left and self.dx < 0:
-                    possible[3] = False
-                if can_go_right and self.dx > 0:
-                    possible[2] = False
-                if can_go_up and self.dy > 0:
-                    possible[1] = False
-                if can_go_down and self.dy < 0:
-                    possible[0] = False
+            # another fix for Dan...
+            # if they are coming off a ladder, try and go the same direction
+            # as they were going before they got on the ladder.
+            if sum(possible) > 1:
+                if self.dy != 0:  # we were going up or down.
+                    if can_go(DIR.LEFT) and self.direction == DIR.LEFT:
+                        possible[DIR.RIGHT.value] = False
+                    if can_go(DIR.RIGHT) and self.direction == DIR.RIGHT:
+                        possible[DIR.LEFT.value] = False
 
-                # another fix for Dan...
-                # if they are coming off a ladder, try and go the same direction
-                # as they were going before they got on the ladder.
-                if sum(possible) > 1:
-                    if self.dy != 0:  # we were going up or down.
-                        if can_go_left and self.direction == DIR.LEFT:  # 'left':
-                            possible[3] = False
-                        if can_go_right and self.direction == DIR.RIGHT:  # 'right':
-                            possible[2] = False
+            func = self.actions[self.choose(possible)]
+            func()
 
-                func = self.actions[self.choose(possible)]
-                func()
-
-            if self.check_for_grain():
-                # stand still to eat grain.
-                self.draw()
-                return
+        if self.check_for_grain():
+            # stand still to eat grain.
+            self.draw()
+            return
 
         self.x += self.dx
         self.y += self.dy
         self.draw()
         return
-
-    def check_for_grain(self):
-        if self.is_going_left():
-            next_tile = (self.x + self.dx, self.y + self.dy + config.tile_height)
-        else:
-            next_tile = (self.x + config.tile_width, self.y + self.dy + config.tile_height)
-        next_element = next(iter([r for r in self.level.elements if r.rect.collidepoint(next_tile)]), None)
-        if next_element and next_element.name == 'grain':
-            self.state = STATE.EATING  # 'eating'
-            self.level.consume_grain(next_element, hen_mode=True)
-            self.dx = 0
-            self.dy = 0
-            self.frame = -1  # reset the frame counter for eating.
-            self.draw()
-            return True
-        return False
