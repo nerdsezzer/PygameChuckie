@@ -3,14 +3,14 @@ import pygame
 import os
 
 import config
-from chuckie.thing import Thing
+from chuckie.thing import Thing, STATE, DIR
 import chuckie.utils as utils
 
 
 class Hen(Thing):
 
-    def __init__(self, name: str, level, start_tile_x, start_tile_y, direction):
-        super().__init__(name, level, start_tile_x, start_tile_y, direction)
+    def __init__(self, level, start_tile_x, start_tile_y, direction: DIR):
+        super().__init__('hen', level, start_tile_x, start_tile_y, direction)
 
         self.images_left_right = []
         for i in range(1, 5):
@@ -37,7 +37,7 @@ class Hen(Thing):
         if config.debug_hens:
             print(f"putting an hen at [{start_tile_x}, {start_tile_y}] => {id(self)}")
 
-        self.dx = config.hen_default_hx_velocity if direction == "right" else 0-config.hen_default_hx_velocity
+        self.dx = config.hen_hx_velocity if direction == DIR.RIGHT else 0 - config.hen_hx_velocity
 
         self.random = Random()
         self.random.seed()
@@ -47,8 +47,8 @@ class Hen(Thing):
         return
 
     def __str__(self):
-        name = "hen" + str(id(self))[-2:]
-        return "[" + name + "]" + super().__str__()[5:]
+        hen_id = "hen" + str(id(self))[-2:]
+        return "[" + hen_id + "]" + super().__str__()[5:]
 
     def draw(self):
         """
@@ -61,22 +61,22 @@ class Hen(Thing):
         if self.frame == 4:
             self.frame = 0
 
-        if self.direction == 'up' or self.direction == 'down':
+        if self.direction == DIR.UP or self.direction == DIR.DOWN:
             self.images = self.images_up_down
             self.image = self.images[self.frame]
             return
 
-        if self.state == 'eating':
+        if self.state == STATE.EATING:  # 'eating':
             self.images = self.images_eating
             self.image = self.images[self.frame]
-            if self.direction == 'left' and self.frame <= 3:
+            if self.direction == DIR.LEFT and self.frame <= 3:
                 self.rect.x -= config.tile_width
             if self.frame == 3:
-                self.state = 'walking'
-                self.dx = config.hen_default_hx_velocity if self.direction == 'right' else 0-config.hen_default_hy_velocity
-            if self.direction == 'right':
+                self.state = STATE.WALKING  # 'walking'
+                self.dx = config.hen_hx_velocity if self.direction == DIR.RIGHT else 0 - config.hen_hx_velocity
+            if self.direction == DIR.RIGHT:
                 self.image = self.images[self.frame]
-            elif self.direction == 'left':
+            elif self.direction == DIR.LEFT:
                 self.image = pygame.transform.flip(self.images[self.frame], True, False)
             return
 
@@ -93,31 +93,27 @@ class Hen(Thing):
         return result
 
     def move_up(self):
-        if self.check_can_move_up_down():
-            self.direction = "up"
-            self.dx = 0
-            self.dy = 0 - config.hen_default_hy_velocity
+        self.direction = DIR.UP
+        self.dx = 0
+        self.dy = 0 - config.hen_hy_velocity
         return
 
     def move_down(self):
-        if self.check_can_move_up_down():
-            self.direction = "down"
-            self.dx = 0
-            self.dy = config.hen_default_hy_velocity
+        self.direction = DIR.DOWN
+        self.dx = 0
+        self.dy = config.hen_hy_velocity
         return
 
     def move_left(self):
-        if self.check_can_move_sideways():
-            self.direction = "left"
-            self.dx = 0 - config.hen_default_hx_velocity
-            self.dy = 0
+        self.direction = DIR.LEFT
+        self.dx = 0 - config.hen_hx_velocity
+        self.dy = 0
         return
 
     def move_right(self):
-        if self.check_can_move_sideways():
-            self.direction = "right"
-            self.dx = config.hen_default_hx_velocity
-            self.dy = 0
+        self.direction = DIR.RIGHT
+        self.dx = config.hen_hx_velocity
+        self.dy = 0
         return
 
     def check_can_move_sideways(self) -> bool:
@@ -134,7 +130,6 @@ class Hen(Thing):
     def check_can_move_up_down(self) -> bool:
         """
         Checks to see if a move up and down is possible, i.e. a ladder.
-        This function takes the current direction of travel into account.
         """
         if not utils.middle_of_block(self.x):
             return False
@@ -145,7 +140,7 @@ class Hen(Thing):
         The walking Hens...they stick to a fairly predicable pattern
         (thanks Dan!)
         """
-        if self.state != 'eating':
+        if self.state != STATE.EATING:  # 'eating':
             # just check we're actually going over a tile boundary...
             # if not process the move, without thinking too hard!
             if not utils.top_of_block(self.y) or not utils.middle_of_block(self.x):
@@ -200,25 +195,16 @@ class Hen(Thing):
                 # as they were going before they got on the ladder.
                 if sum(possible) > 1:
                     if self.dy != 0:  # we were going up or down.
-                        if can_go_left and self.direction == 'left':
+                        if can_go_left and self.direction == DIR.LEFT:  # 'left':
                             possible[3] = False
-                        if can_go_right and self.direction == 'right':
+                        if can_go_right and self.direction == DIR.RIGHT:  # 'right':
                             possible[2] = False
 
                 func = self.actions[self.choose(possible)]
                 func()
 
-            if self.is_going_left():
-                next_tile = (self.x + self.dx, self.y + self.dy + config.tile_height)
-            else:
-                next_tile = (self.x + config.tile_width, self.y + self.dy + config.tile_height)
-            next_element = next(iter([r for r in self.level.elements if r.rect.collidepoint(next_tile)]), None)
-            if next_element and next_element.name == 'grain':
-                self.state = 'eating'
-                self.level.consume_grain(next_element, hen_mode=True)
-                self.dx = 0
-                self.dy = 0
-                self.frame = -1  # reset the frame counter for eating.
+            if self.check_for_grain():
+                # stand still to eat grain.
                 self.draw()
                 return
 
@@ -226,3 +212,19 @@ class Hen(Thing):
         self.y += self.dy
         self.draw()
         return
+
+    def check_for_grain(self):
+        if self.is_going_left():
+            next_tile = (self.x + self.dx, self.y + self.dy + config.tile_height)
+        else:
+            next_tile = (self.x + config.tile_width, self.y + self.dy + config.tile_height)
+        next_element = next(iter([r for r in self.level.elements if r.rect.collidepoint(next_tile)]), None)
+        if next_element and next_element.name == 'grain':
+            self.state = STATE.EATING  # 'eating'
+            self.level.consume_grain(next_element, hen_mode=True)
+            self.dx = 0
+            self.dy = 0
+            self.frame = -1  # reset the frame counter for eating.
+            self.draw()
+            return True
+        return False
