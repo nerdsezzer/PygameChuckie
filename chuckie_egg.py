@@ -30,7 +30,7 @@ if debug_display:
 status = Status(window)
 ctrls = Controls()
 level = Level(levels[status.game_level], status)
-level.draw()
+level.create()
 
 
 # -----------------------------------------------------------------------------
@@ -70,17 +70,13 @@ while not all_done:
     while status.game_lives > 0:
 
         ctrls.process_events()
-
         if not ctrls.paused:
 
-            tick = not tick
-            if tick:
-                for hen in level.hens:
-                    hen.move()
+            # update level's movables
+            tick = level.update_hens(tick)
+            level.update_lifts()
 
-            for lift in level.lifts:
-                lift.move()
-
+            # update Harry's location, and check for death!
             if not level.harry.move(ctrls, sounds) \
                     or level.check_lift_death() \
                     or level.check_collision() \
@@ -91,36 +87,32 @@ while not all_done:
                 get_ready_screen()
                 level.reset()
 
+            # check we've completed the level?
             if level.are_all_eggs_collected():
                 print("Yay!")
-                # copy bonus to score and update lives (10,000 = 1 life).
                 status.update_score_end_of_level(window)
-
-                # scene change / next level
                 level.unload()
 
-                # stall for a bit...
-                get_ready_screen()
-
+                # have we completed the game?
                 status.game_level += 1
                 if status.game_level >= len(levels):
                     all_done = True
                     break
 
+                # stall for a bit...
+                get_ready_screen()
+
                 # recreate Level with the next lot of game data.
                 level = Level(levels[status.game_level], status)
-                level.draw()
+                level.create()
                 break
 
             status.update()
 
         # normal game tick,d
         window.fill([0, 0, 0])
-        status.draw(level.harry, level.hens)
-        level.elements.draw(window)
-        level.hens.draw(window)
-        level.lifts.draw(window)
-        level.harrys.draw(window)
+        status.draw()
+        level.draw(window)
         pygame.display.flip()
         clock.tick(fps)
 

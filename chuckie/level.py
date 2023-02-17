@@ -1,5 +1,6 @@
 import pygame
 import config
+from chuckie.thing import STATE, DIR
 from chuckie.hen import Hen
 from chuckie.harry import Harry
 from chuckie.lift import Lift
@@ -26,32 +27,32 @@ class Level:
         self.tiles = {}
         self.elements = pygame.sprite.Group()
         self.handles = {}
-        self.harrys = pygame.sprite.Group()
-        self.hens = pygame.sprite.Group()
-        self.lifts = pygame.sprite.Group()
+        self._harrys = pygame.sprite.Group()
+        self._harry = None
+        self._hens = pygame.sprite.Group()
+        self._lifts = pygame.sprite.Group()
         self.level_egg_count = 0
         self.eggs_collected = 0
         return
 
     def __repr__(self):
-        return f"level={self.status.game_level}, lifts={len(self.lifts)//2}, " \
-               f"hens={len(self.hens)}, eggs collected={self.eggs_collected}/{self.level_egg_count}"
+        return f"level={self.status.game_level}, lifts={len(self._lifts) // 2}, " \
+               f"hens={len(self._hens)}, eggs collected={self.eggs_collected}/{self.level_egg_count}"
 
     @property
-    def harry(self):
-        return self.harrys.sprites()[0]
+    def harry(self) -> Harry:
+        return self._harry
 
     @staticmethod
     def grid_to_tile(a, b):
         return b + 1, a + 6
 
-    def draw(self):
+    def create(self):
         """
         Create the level based on the data passed in on the initialiser.
         Items are created as they are found.  Moving/Movable objects are
-        assigned to member variables.
+        assigned to member variables, other objects are held by handles.
         """
-
         for a in reversed(range(0, config.y_tiles)):
             for b in reversed(range(0, config.x_tiles)):
                 element = self.data[a][b]
@@ -70,17 +71,19 @@ class Level:
                 elif element == 'f':
                     handle, label = (Floor(x, y), "floor")
                 elif element == 'hl':
-                    self.hens.add(Hen('hen', self, x, y, "left"))
+                    self._hens.add(Hen(self, x-1, y, DIR.LEFT))
                 elif element == 'hr':
-                    self.hens.add(Hen('hen', self, x, y, "right"))
+                    self._hens.add(Hen(self, x-1, y, DIR.RIGHT))
                 elif element == 'cl':
-                    self.harrys.add(Harry(self, x, y, "left"))
+                    self._harry = Harry(self, x, y, DIR.LEFT)
+                    self._harrys.add(self._harry)
                 elif element == 'cr':
-                    self.harrys.add(Harry(self, x, y, "right"))
+                    self._harry = Harry(self, x, y, DIR.RIGHT)
+                    self._harrys.add(self._harry)
                 elif element == '-l':
-                    self.lifts.add(Lift(self, x, y, "left"))
+                    self._lifts.add(Lift(self, x, y, DIR.LEFT))
                 elif element == '-r':
-                    self.lifts.add(Lift(self, x, y, "right"))
+                    self._lifts.add(Lift(self, x, y, DIR.RIGHT))
 
                 if handle:
                     self.elements.add(handle)
@@ -89,71 +92,98 @@ class Level:
                     self.tiles[(x, y)] = label
         return
 
+    def update_hens(self, tick: bool):
+        hen: Hen
+        if tick:
+            for hen in self._hens:
+                hen.move()
+        return not tick
+
+    def update_lifts(self):
+        lift: Lift
+        for lift in self._lifts:
+            lift.move()
+        return
+
+    def draw(self, display: pygame.display):
+        self.elements.draw(display)
+        self._hens.draw(display)
+        self._lifts.draw(display)
+        self._harrys.draw(display)
+        return
+
     def reset(self):
         """
-        This puts Harry and the Hens back to their starting positions.
+        Called when Harry has died.
+        This puts the moveable objects back to their starting positions,
         and updates the status.
         """
-        self._reset_harry_and_hens()
+        self._reset_moveables()
         self.status.reset_time()
         return
 
     def unload(self):
         """
-        Clear and delete all the turtle objects.
+        Called when a level has been completed.
+        Clear and delete all sprite objects, moveable and otherwise.
         """
-        # clear and delete the moving things (harry and the hens)
-        self.unload_movers()
+        self._unload_moveables()
 
-        # ... then clear and delete all the other elements in the level
         for handle in self.handles.values():
             handle.kill()
             del handle
         return
 
-    def unload_movers(self):
+    def _unload_moveables(self):
         """
         Clear and delete all the moveable things, as needed when a level
         is reset.
         """
-        self.harry.kill()
+        for x in self._harrys:
+            x.kill()
+            del x
 
-        for hen in self.hens:
+        del self._harry
+
+        for hen in self._hens:
             hen.kill()
             del hen
 
-        for lift in self.lifts:
+        for lift in self._lifts:
             lift.kill()
             del lift
         return
 
-    def _reset_harry_and_hens(self):
+    def _reset_moveables(self):
         """
         Clear, delete and then recreate the movables:
            Harry, the hens and the lifts.
         """
-        self.unload_movers()
-        self.harrys = pygame.sprite.Group()
-        self.hens = pygame.sprite.Group()
-        self.lifts = pygame.sprite.Group()
+        self._unload_moveables()
+
+        self._harrys = pygame.sprite.Group()
+        self._hens = pygame.sprite.Group()
+        self._lifts = pygame.sprite.Group()
 
         for a in reversed(range(0, 22)):
             for b in reversed(range(0, 22)):
                 element = self.data[a][b]
-                (x, y) = Level.grid_to_tile(a, b)
+                x, y = Level.grid_to_tile(a, b)
 
                 if element == 'hl':
-                    self.hens.add(Hen('hen', self, x, y, "left"))
+                    self._hens.add(Hen(self, x, y, DIR.LEFT))
                 elif element == 'hr':
-                    self.hens.add(Hen('hen', self, x, y, "right"))
+                    self._hens.add(Hen(self, x, y, DIR.RIGHT))
                 elif element == 'cl':
-                    self.harrys.add(Harry(self, x, y, "left"))
+                    self._harry = Harry(self, x, y, DIR.LEFT)
+                    self._harrys.add(self._harry)
                 elif element == 'cr':
-                    self.harrys.add(Harry(self, x, y, "right"))
+                    self._harry = Harry(self, x, y, DIR.RIGHT)
+                    self._harrys.add(self._harry)
                 elif element == '-l':
-                    self.lifts.add(Lift(self, x, y, "left"))
+                    self._lifts.add(Lift(self, x, y, DIR.LEFT))
                 elif element == '-r':
-                    self.lifts.add(Lift(self, x, y, "right"))
+                    self._lifts.add(Lift(self, x, y, DIR.RIGHT))
         return
 
     # -------------------------------------------------------------------------
@@ -208,19 +238,14 @@ class Level:
     def check_collision(self) -> bool:
         """
         Check to see if harry and a hen have collided.  If so, end of life. :(
-        @Todo, this might be a bit forgiving as it only checks top/head tile.
         """
-        if config.hens_are_friendly:
-            return False
-
-        harry_tx, harry_ty = utils.real_to_tile(self.harry.rect.x, self.harry.rect.y)
-        for h in self.hens:
-            tx, ty = utils.real_to_tile(h.rect.x, h.rect.y)
-            if harry_tx == tx and harry_ty == ty:
+        for h in self._hens:
+            r = pygame.Rect(h.rect.x+config.tile_width,
+                            h.rect.y,
+                            config.tile_width,
+                            config.tile_height*2)
+            if self.harry.rect.colliderect(r):
                 return True
-            if not config.hens_are_jumpable and harry_tx == tx and harry_ty-1 == ty:
-                return True
-
         return False
 
     # -------------------------------------------------------------------------
@@ -235,7 +260,7 @@ class Level:
         if not self.harry.on_lift:
             return False
 
-        if self.harry.rect.y > config.top_limit_for_lift + config.tile_height:
+        if self.harry.rect.y < Lift.LIFT_DISAPPEARS_AT - (2*config.tile_height):
             return True
 
         return False
@@ -244,8 +269,18 @@ class Level:
     # General level navigation support...
     # -------------------------------------------------------------------------
 
-    def get(self, tx, ty) -> str:
-        if (tx, ty) not in self.tiles:
-            return ""
-        else:
-            return self.tiles[(tx, ty)]
+    def element_at(self, tx, ty) -> str:
+        pt = utils.tile_to_real(tx, ty)
+        element = next(iter([r.name for r in self.all_landables() if r.rect.collidepoint(pt)]), None)
+        return element
+
+    def all_landables(self):
+        return self._lifts.sprites() + self.elements.sprites()
+
+    def get_lift(self, point):
+        """
+        This checks to see if the tile at Harry's feet is a lift tile.  This
+        also checks the next tile if we're not on a full tile.
+        """
+        element = next(iter([r for r in self._lifts if r.rect.collidepoint(point)]), None)
+        return element

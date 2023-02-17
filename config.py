@@ -20,27 +20,27 @@ tile_height = 32
 left_limit = 0*tile_width
 right_limit = 22*tile_width
 bottom_limit = 0*tile_height
-top_limit = 28*tile_height                  # note this one is +4'd to allow Harry to jump and come back!
-top_limit_for_lift = 28*tile_height         # this is where the lift disappears, to respawn at the bottom.
+top_limit = 28*tile_height      # note this one is +4'd to allow Harry to jump and come back!
+
 
 #
 # "physics" values
 #
-jump_height = 0 - (15 + 4)
+jump_height = 0 - (13 + 4)
 gravity = 4
 
 #
 # default speeds and limits
 #
-harry_default_hx_velocity = tile_width / 4
+harry_hx_velocity = tile_width / 4
 harry_default_hy_velocity = tile_height / 2
 harry_falling_hy_velocity = tile_height
 max_fall_velocity = tile_height/2
 
-hen_default_hx_velocity = tile_width / 4
-hen_default_hy_velocity = tile_height / 2
+hen_hx_velocity = tile_width / 4
+hen_hy_velocity = tile_height / 2
 
-lift_default_hy_velocity = 0 - (tile_height / 6)
+lift_hy_velocity = 0 - (tile_height / 6)
 
 #
 # make_it_easy, setting this to True means the level is won,
@@ -55,20 +55,15 @@ make_it_easy = False
 hens_are_friendly = False
 
 #
-# hens_are_jumpable...
-#
-hens_are_jumpable = True
-
-#
 # settings to support debug...
 #
 start_paused = False
-debug_display = False
-debug_harry = False
+debug_display = True
+debug_harry = True
 debug_hens = False
 debug_lifts = False
 
 #
 # zero based index for level to load
 #
-starting_level = 0
+starting_level = 2

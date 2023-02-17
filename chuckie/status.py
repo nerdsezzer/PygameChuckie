@@ -85,16 +85,7 @@ class Status:
                 self.game_bonus -= 10
         return
 
-    def draw(self, harry=None, hens=None):
-
-        """if config.debug_display and harry and hens:
-            (x, y) = tile_to_real(-5, self._top_level_tile-1)
-            self.header.setposition(x, y)
-            details = harry.get_state() + "\n"
-            for h in hens:
-                details += h.get_state() + "\n"
-            self.header.write(details, align="left", font=self._font)"""
-
+    def draw(self):
         (x, y) = tile_to_real(self._start_left, self._top_level_tile)
         text_surface = self._font.render("SCORE  "+str(self.game_score).rjust(6, '0'), False, self._colour)
         self._window.blit(text_surface, (x + 20, y))

@@ -65,7 +65,7 @@ class Hen(Thing):
             self.frame = 0
 
         # all images are three tiles wide, adjust display x to compensate.
-        self.rect.x = self.x # - config.tile_width
+        self.rect.x = self.x  # - config.tile_width
         self.rect.y = self.y
 
         if self.direction == DIR.UP or self.direction == DIR.DOWN:
