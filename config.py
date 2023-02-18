@@ -58,12 +58,12 @@ hens_are_friendly = False
 # settings to support debug...
 #
 start_paused = False
-debug_display = True
-debug_harry = True
+debug_display = False
+debug_harry = False
 debug_hens = False
 debug_lifts = False
 
 #
 # zero based index for level to load
 #
-starting_level = 2
+starting_level = 0

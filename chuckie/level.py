@@ -238,13 +238,19 @@ class Level:
     def check_collision(self) -> bool:
         """
         Check to see if harry and a hen have collided.  If so, end of life. :(
+        This is called 'after' move() functions, so x and y have been updated
+        and draw() as been called.
+        Note: tile_width = 52, tile_height = 32
         """
+        hr = self.harry.rect.copy()
+        hr.y += config.tile_height//2
+        hr.height -= config.tile_height//2
         for h in self._hens:
-            r = pygame.Rect(h.rect.x+config.tile_width,
+            r = pygame.Rect(h.rect.x+config.tile_width+13,
                             h.rect.y,
-                            config.tile_width,
-                            config.tile_height*2)
-            if self.harry.rect.colliderect(r):
+                            config.tile_width-26,
+                            (config.tile_height*2))
+            if hr.colliderect(r):
                 return True
         return False
 
