@@ -56,7 +56,6 @@ class Thing(pygame.sprite.Sprite):
     @x.setter
     def x(self, value):
         self._hx = value
-        #self.rect.x = value
         return
 
     @property
@@ -66,7 +65,6 @@ class Thing(pygame.sprite.Sprite):
     @y.setter
     def y(self, value):
         self._hy = value
-        #self.rect.y = value
         return
 
     @property
@@ -88,8 +86,6 @@ class Thing(pygame.sprite.Sprite):
     @property
     def tx(self):
         """ tx for the central lower tile """
-        #return int(self.rect.centerx / config.tile_width)
-        # don't rely on rect's centerx, as it won't have been updated yet.
         real_x = self._hx + (self.rect.width//2)
         x = real_x / config.tile_width
         return x
@@ -97,7 +93,6 @@ class Thing(pygame.sprite.Sprite):
     @property
     def ty(self):
         """ ty for the central lower tile """
-        #return int(self.rect.centery / config.tile_height)
         real_y = self._hy + (self.rect.height//2)
         y = real_y / config.tile_height
         return y
@@ -207,25 +202,25 @@ class Thing(pygame.sprite.Sprite):
         """
         moves = [False, False, False, False]
 
-        over_head = utils.tile_to_real(self.tx, self.ty-2)  # (self._hx, self._hy - config.tile_height)
+        over_head = utils.tile_to_real(self.tx, self.ty - 2)
         over_head_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(over_head)]), None)
 
-        head_tile = utils.tile_to_real(self.tx, self.ty-1)  # (self._hx, self._hy)
+        head_tile = utils.tile_to_real(self.tx, self.ty - 1)
         head_tile_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(head_tile)]), None)
 
-        under_foot = utils.tile_to_real(self.tx, self.ty+1)   # (self._hx, self._hy + (config.tile_height * 2))
+        under_foot = utils.tile_to_real(self.tx, self.ty + 1)
         under_foot_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_foot)]), None)
 
-        under_left = utils.tile_to_real(self.tx-1, self.ty+1)  # (self.rect.centerx - config.tile_width, self._hy + (config.tile_height * 2))
+        under_left = utils.tile_to_real(self.tx - 1, self.ty + 1)
         under_left_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_left)]), None)
 
-        under_right = utils.tile_to_real(self.tx+1, self.ty+1)  # self.rect.centerx + config.tile_width, self._hy + (config.tile_height * 2))
+        under_right = utils.tile_to_real(self.tx + 1, self.ty + 1)
         under_right_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_right)]), None)
 
-        if over_head_element == 'ladder' and self.name == "hen":
+        if over_head_element == 'ladder': # and self.name == "hen":
             moves[0] = True
-        if head_tile_element == 'ladder' and self.name == "harry":
-            moves[0] = True
+        #if head_tile_element == 'ladder' and self.name == "harry":
+        #    moves[0] = True
         if under_foot_element == 'ladder':
             moves[1] = True
         if under_left_element == 'floor' or under_left_element == 'ladder':

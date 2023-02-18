@@ -34,6 +34,8 @@ def top_of_block(real_y):
 def middle_of_block(real_x):
     return not real_x % config.tile_width
 
+def center_of_tile(real_x):
+    return (real_x % config.tile_width) == config.tile_width//2
 
 def is_outside_playable_area(thing):
     return thing.x > config.right_limit \
