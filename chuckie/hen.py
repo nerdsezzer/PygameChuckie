@@ -14,21 +14,30 @@ class Hen(Thing):
 
         self.images_left_right = []
         for i in range(1, 5):
-            img = pygame.image.load(os.path.join('.', 'images', 'hen-' + str(i) + '.png')).convert()
+            if config.debug_display:
+                img = pygame.image.load(os.path.join('.', 'images', 'hen-debug.png')).convert()
+            else:
+                img = pygame.image.load(os.path.join('.', 'images', 'hen-' + str(i) + '.png')).convert()
             img.convert_alpha()
             img.set_colorkey((0, 0, 0))
             self.images_left_right.append(img)
 
         self.images_eating = []
         for i in range(1, 5):
-            img = pygame.image.load(os.path.join('.', 'images', 'hen-eating-' + str(i) + '.png')).convert()
+            if config.debug_display:
+                img = pygame.image.load(os.path.join('.', 'images', 'hen-debug.png')).convert()
+            else:
+                img = pygame.image.load(os.path.join('.', 'images', 'hen-eating-' + str(i) + '.png')).convert()
             img.convert_alpha()
             img.set_colorkey((0, 0, 0))
             self.images_eating.append(img)
 
         self.images_up_down = []
         for i in range(1, 5):
-            img = pygame.image.load(os.path.join('.', 'images', 'hen-ladder-' + str(i) + '.png')).convert()
+            if config.debug_display:
+                img = pygame.image.load(os.path.join('.', 'images', 'hen-debug.png')).convert()
+            else:
+                img = pygame.image.load(os.path.join('.', 'images', 'hen-ladder-' + str(i) + '.png')).convert()
             img.convert_alpha()
             img.set_colorkey((0, 0, 0))
             self.images_up_down.append(img)

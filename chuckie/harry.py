@@ -20,16 +20,20 @@ class Harry(Thing):
 
         self.images_left_right = []
         for i in range(1, 5):
-            #img = pygame.image.load(os.path.join('.', 'images', 'harry-' + str(i) + '.png')).convert()
-            img = pygame.image.load(os.path.join('.', 'images', 'harry-debug.png')).convert()
+            if config.debug_display:
+                img = pygame.image.load(os.path.join('.', 'images', 'harry-debug.png')).convert()
+            else:
+                img = pygame.image.load(os.path.join('.', 'images', 'harry-' + str(i) + '.png')).convert()
             img.convert_alpha()
             img.set_colorkey((0, 0, 0))
             self.images_left_right.append(img)
 
         self.images_up_down = []
         for i in range(1, 5):
-            #img = pygame.image.load(os.path.join('.', 'images', 'harry-ladder-' + str(i) + '.png')).convert()
-            img = pygame.image.load(os.path.join('.', 'images', 'harry-debug.png')).convert()
+            if config.debug_display:
+                img = pygame.image.load(os.path.join('.', 'images', 'harry-debug.png')).convert()
+            else:
+                img = pygame.image.load(os.path.join('.', 'images', 'harry-ladder-' + str(i) + '.png')).convert()
             img.convert_alpha()
             img.set_colorkey((0, 0, 0))
             self.images_up_down.append(img)
