@@ -8,6 +8,10 @@ import chuckie.utils as utils
 
 
 class Hen(Thing):
+    """
+    No-one seems to know if they are hens, ducklings or emus!
+    I'm assuming they are hens, just weird looking ones.
+    """
 
     def __init__(self, level, start_tile_x, start_tile_y, direction: DIR):
         super().__init__('hen', level, start_tile_x, start_tile_y, direction)
@@ -49,32 +53,34 @@ class Hen(Thing):
         if config.debug_hens:
             print(f"putting an hen at [{start_tile_x}, {start_tile_y}] => {id(self)}")
 
-        self.move_left() if direction == DIR.LEFT else self.move_right()
+        self.update_left() if direction == DIR.LEFT else self.update_right()
+        self.previous = self.direction
 
         self.random = Random()
         self.random.seed()
-        self.actions = [self.move_up, self.move_down, self.move_left, self.move_right]
+        self.actions = [self.update_up, self.update_down, self.update_left, self.update_right]
+
+        if config.debug_hens:
+            self.dump_state()
 
         self.move()
         return
 
     def __str__(self):
-        hen_id = "hen" + str(id(self))[-2:]
-        return "[" + hen_id + "]" + super().__str__()[5:]
+        return "[hen" + str(id(self))[-2:] + "]" + super().__str__()[5:]
 
     def draw(self):
         """
-        Figure out which image to display, there are two for left, right (stretched out
-        to four), three for eating (stretched to four) and three for going up or down
-        (stretched out to four).  The image arrays are swapped depending on the hen's
-        direction or state.
+        Figure out which image to display, there are four images for left-right,
+        four for eating, and four more for going up and down.
+        The image arrays are swapped depending on the hen's direction or state.
         """
         self.frame += 1
-        if self.frame == 4:     # all the image arrays are 4 in length.
+        if self.frame == len(self.images):
             self.frame = 0
 
         # all images are three tiles wide, adjust display x to compensate.
-        self.rect.x = self.x  # - config.tile_width
+        self.rect.x = self.x
         self.rect.y = self.y
 
         if self.direction == DIR.UP or self.direction == DIR.DOWN:
@@ -101,48 +107,37 @@ class Hen(Thing):
         result = [i for i, n in enumerate(options) if n is True][decision]
         return result
 
-    def move_up(self):
+    def update_up(self):
+        if self.direction != DIR.UP:
+            self.previous = self.direction
         self.direction = DIR.UP
         self.dx = 0
         self.dy = 0 - config.hen_hy_velocity
         return
 
-    def move_down(self):
+    def update_down(self):
+        if self.direction != DIR.DOWN:
+            self.previous = self.direction
         self.direction = DIR.DOWN
         self.dx = 0
         self.dy = config.hen_hy_velocity
         return
 
-    def move_left(self):
+    def update_left(self):
+        if self.direction != DIR.LEFT:
+            self.previous = self.direction
         self.direction = DIR.LEFT
         self.dx = 0 - config.hen_hx_velocity
         self.dy = 0
         return
 
-    def move_right(self):
+    def update_right(self):
+        if self.direction != DIR.RIGHT:
+            self.previous = self.direction
         self.direction = DIR.RIGHT
         self.dx = config.hen_hx_velocity
         self.dy = 0
         return
-
-    def check_can_move_sideways(self) -> bool:
-        """
-        This function checks to see if a sideways move is possible...
-
-        It's overriden here because we already know what moves are possible
-        for Hen's, so all we need to do if check they're on the top of a block.
-        """
-        if not utils.top_of_block(self.y):
-            return False
-        return True
-
-    def check_can_move_up_down(self) -> bool:
-        """
-        Checks to see if a move up and down is possible, i.e. a ladder.
-        """
-        if not utils.middle_of_block(self.x):
-            return False
-        return True
 
     def get_possible_moves(self):
         """
@@ -151,31 +146,35 @@ class Hen(Thing):
         """
         moves = [False, False, False, False]
 
-        over_head = utils.tile_to_real(self.tx, self.ty - 2)
-        over_head_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(over_head)]), None)
+        above_pt = utils.tile_to_real(self.tx, self.ty - 2)
+        above_element = next(iter([r.name for r in self.level.elements
+                                   if r.rect.collidepoint(above_pt)]), None)
 
-        under_foot = utils.tile_to_real(self.tx, self.ty + 1)
-        under_foot_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_foot)]), None)
+        under_pt = utils.tile_to_real(self.tx, self.ty + 1)
+        under_element = next(iter([r.name for r in self.level.elements
+                                   if r.rect.collidepoint(under_pt)]), None)
 
-        under_left = utils.tile_to_real(self.tx - 1, self.ty + 1)
-        under_left_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_left)]), None)
+        left_pt = utils.tile_to_real(self.tx - 1, self.ty + 1)
+        under_lf_element = next(iter([r.name for r in self.level.elements
+                                      if r.rect.collidepoint(left_pt)]), None)
 
-        under_right = utils.tile_to_real(self.tx + 1, self.ty + 1)
-        under_right_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_right)]), None)
+        right_pt = utils.tile_to_real(self.tx + 1, self.ty + 1)
+        under_rt_element = next(iter([r.name for r in self.level.elements
+                                      if r.rect.collidepoint(right_pt)]), None)
 
-        if over_head_element == 'ladder':
+        if above_element == 'ladder':
             moves[0] = True
-        if under_foot_element == 'ladder':
+        if under_element == 'ladder':
             moves[1] = True
-        if under_left_element == 'floor' or under_left_element == 'ladder':
+        if under_lf_element == 'floor' or under_lf_element == 'ladder':
             moves[2] = True
-        if under_right_element == 'floor' or under_right_element == 'ladder':
+        if under_rt_element == 'floor' or under_rt_element == 'ladder':
             moves[3] = True
         return moves
 
     def check_for_grain(self):
         """
-        Check the next tile to see if it's grain, if it is... eat it!
+        Check if the next tile is grain, if it is... eat it!
         """
         tx = self.tx - 1 if self.is_going_left() else self.tx + 1
         next_tile = utils.tile_to_real(tx, self.ty)
@@ -198,13 +197,13 @@ class Hen(Thing):
         if self.state == STATE.EATING:
             if self.frame == 3:
                 self.state = STATE.WALKING
-                self.move_left() if self.direction == DIR.LEFT else self.move_right()
+                self.update_left() if self.direction == DIR.LEFT else self.update_right()
             self.draw()
             return
 
         # just check we're actually going over a tile boundary...
         # if not process the move, without thinking too hard!
-        if not utils.top_of_block(self.y) or not utils.middle_of_block(self.x):
+        if not utils.top_of_block(self.y) or not utils.left_edge_of_block(self.x):
             self.x += self.dx
             self.y += self.dy
             self.draw()
@@ -223,30 +222,33 @@ class Hen(Thing):
 
         options = sum(possible)
         if options == 1:
+            # there's only one option, take it.
             func = self.actions[self.choose(possible)]
             func()
-        elif options == 2 and self.dx > 0 and can_go(DIR.RIGHT):
-            self.move_right()
-        elif options == 2 and self.dx < 0 and can_go(DIR.LEFT):
-            self.move_left()
-        elif options == 2 and self.dy < 0 and can_go(DIR.UP):
-            self.move_up()
-        elif options == 2 and self.dy > 0 and can_go(DIR.DOWN):
-            self.move_down()
-        elif options == 0:
-            if config.debug_hens:
-                print("Hen.move(), not possible moves available.")
+        if options == 2:
+            # if there are only two options, keep going (dont u-turn).
+            if self.dx > 0 and can_go(DIR.RIGHT):
+                self.update_right()
+            elif self.dx < 0 and can_go(DIR.LEFT):
+                self.update_left()
+            elif self.dy < 0 and can_go(DIR.UP):
+                self.update_up()
+            elif self.dy > 0 and can_go(DIR.DOWN):
+                self.update_down()
+            else:
+                func = self.actions[self.choose(possible)]
+                func()
         else:
             # fix it for Dan...
             # if they're walking in one direction, they won't just turn round
             # at a junction.
-            if can_go(DIR.LEFT) and self.dx < 0:
+            if self.is_going_left():  # can_go(DIR.LEFT) and self.dx < 0:
                 possible[DIR.RIGHT.value] = False
-            if can_go(DIR.RIGHT) and self.dx > 0:
+            if self.is_going_right():  # can_go(DIR.RIGHT) and self.dx > 0:
                 possible[DIR.LEFT.value] = False
-            if can_go(DIR.UP) and self.dy > 0:
+            if self.is_going_up():  # can_go(DIR.UP) and self.dy < 0:
                 possible[DIR.DOWN.value] = False
-            if can_go(DIR.DOWN) and self.dy < 0:
+            if self.is_going_down():  # can_go(DIR.DOWN) and self.dy > 0:
                 possible[DIR.UP.value] = False
 
             # another fix for Dan...
@@ -254,9 +256,9 @@ class Hen(Thing):
             # as they were going before they got on the ladder.
             if sum(possible) > 1:
                 if self.dy != 0:  # we were going up or down.
-                    if can_go(DIR.LEFT) and self.direction == DIR.LEFT:
+                    if can_go(DIR.LEFT) and self.previous == DIR.LEFT:
                         possible[DIR.RIGHT.value] = False
-                    if can_go(DIR.RIGHT) and self.direction == DIR.RIGHT:
+                    if can_go(DIR.RIGHT) and self.previous == DIR.RIGHT:
                         possible[DIR.LEFT.value] = False
 
             func = self.actions[self.choose(possible)]
