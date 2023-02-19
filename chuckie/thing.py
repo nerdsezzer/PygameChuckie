@@ -2,7 +2,6 @@ import pygame.sprite
 from enum import Enum
 
 import config
-from chuckie.utils import real_to_tile
 import chuckie.utils as utils
 
 
@@ -96,7 +95,7 @@ class Thing(pygame.sprite.Sprite):
 
     def __str__(self):
         return f"[{self.name}] " \
-               f"center=({self.rect.centerx:.0f}, {self.rect.centery:.0f}), tile=[{self.tx},{self.ty}], " \
+               f"({self.rect.centerx:.0f}, {self.rect.centery:.0f}), tile=[{self.tx},{self.ty}], " \
                f"dx={self.hx_velocity:.2f}, dy={self.hy_velocity:.2f}, " \
                f"'{self.direction}'|'{self.state}'"
 
