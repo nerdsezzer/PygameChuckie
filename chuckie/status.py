@@ -104,7 +104,7 @@ class Status:
     def on_harry_died(self):
         self.game_lives -= 1
         self.icons.sprites()[-1].kill()
-        return
+        return self.game_lives
 
     def update_score_end_of_level(self, window, level, clock, fps):
         step = 25
