@@ -2,8 +2,6 @@ import pygame
 import config
 import os
 
-# @todo - make this a factory?
-
 
 class Egg(pygame.sprite.Sprite):
 
