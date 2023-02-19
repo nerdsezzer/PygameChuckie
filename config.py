@@ -66,4 +66,4 @@ debug_lifts = False
 #
 # zero based index for level to load
 #
-starting_level = 3
+starting_level = 0
