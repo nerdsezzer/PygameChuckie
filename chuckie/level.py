@@ -92,6 +92,9 @@ class Level:
                     self.tiles[(x, y)] = label
         return
 
+    def all_landables(self):
+        return self._lifts.sprites() + self.elements.sprites()
+
     def update_hens(self, tick: bool):
         hen: Hen
         if tick:
@@ -242,6 +245,9 @@ class Level:
         and draw() as been called.
         Note: tile_width = 52, tile_height = 32
         """
+        if config.hens_are_friendly:
+            return False
+
         hr = self.harry.rect.copy()
         hr.y += config.tile_height//2
         hr.height -= config.tile_height//2
@@ -278,15 +284,4 @@ class Level:
     def element_at(self, tx, ty) -> str:
         pt = utils.tile_to_real(tx, ty)
         element = next(iter([r.name for r in self.all_landables() if r.rect.collidepoint(pt)]), None)
-        return element
-
-    def all_landables(self):
-        return self._lifts.sprites() + self.elements.sprites()
-
-    def get_lift(self, point):
-        """
-        This checks to see if the tile at Harry's feet is a lift tile.  This
-        also checks the next tile if we're not on a full tile.
-        """
-        element = next(iter([r for r in self._lifts if r.rect.collidepoint(point)]), None)
         return element
