@@ -10,9 +10,6 @@ import chuckie.utils as utils
 class Harry(Thing):
     """
     The main character: Hen House Harry...
-
-    Harry's self.state values:  'jump', 'falling', 'walking', 'still'
-    Harry's self.direction values: 'left', 'right', 'up', 'down', and 'splat'
     """
 
     def __init__(self, level, start_tile_x, start_tile_y, start_direction):
@@ -134,10 +131,12 @@ class Harry(Thing):
 
     def get_possible_moves(self):
         """
-        Returns a list of bools, that denote if a Harry or a Hen can go
+        Returns a list of bools, that denote if Harry can go
         up, down, left or right, in that order.
+        Harry can go left and right as long as there isn't a
+        floor tile 'step'.
         """
-        moves = [False, False, False, False]
+        moves = [False, False, True, True]
 
         items = self.level.all_landables()
         over_head = utils.tile_to_real(self.tx, self.ty-2)
@@ -157,55 +156,35 @@ class Harry(Thing):
 
         under_left = utils.tile_to_real(self.tx-1, self.ty+1)
         under_left_element = next(iter([r.name for r in items if r.rect.collidepoint(under_left)]), "")
-        under_left_element = "" if under_left_element == 'grain' or under_left_element == 'egg' else under_left_element
 
         right = utils.tile_to_real(self.tx+1, self.ty)
         right_element = next(iter([r.name for r in items if r.rect.collidepoint(right)]), "")
 
         under_right = utils.tile_to_real(self.tx+1, self.ty+1)
         under_right_element = next(iter([r.name for r in items if r.rect.collidepoint(under_right)]), "")
-        under_right_element = "" if under_right_element == 'grain' or under_right_element == 'egg' else under_right_element
 
-        if over_head_element == 'ladder' and self.name == "hen":
-            moves[0] = True
-        if (head_tile_element == 'ladder' or current_element == 'ladder') and self.name == "harry":
+        if head_tile_element == 'ladder' or current_element == 'ladder':
             moves[0] = True
         if under_foot_element == 'ladder':
             moves[1] = True
-        if under_left_element == 'floor' or under_left_element == 'ladder' or under_left_element == 'lift'\
-                or (under_left_element == "" and self.name == "harry"):
-            moves[2] = True
-        if under_right_element == 'floor' or under_right_element == 'ladder' or under_right_element == 'lift' \
-                or (under_right_element == "" and self.name == "harry"):
-            moves[3] = True
         if left_element == 'floor':
             moves[2] = False
         if right_element == 'floor':
             moves[3] = False
 
-        if current_element == 'ladder' and self.name == 'harry':
-            print("we're on a ladder!")
-            if under_left_element == "":
-                print("really nope")
+        if current_element == 'ladder':
+            if under_left_element == "" or under_left_element == 'grain' or under_left_element == 'egg':
                 moves[2] = False
-            if under_right_element == "":
-                print("nope")
+            if under_right_element == "" or under_right_element == 'grain' or under_right_element == 'egg':
                 moves[3] = False
 
         return moves
 
     def check_can_move_sideways(self) -> bool:
         """
-        This function checks to see if a move is possible, i.e. floor or ladder
-        is there to step on.
-
-        This function uses current direction of travel to determine if a
-        sideways move is possible.
+        This function checks to see if a move is possible, i.e. there's a
+        floor or ladder to step on.
         """
-        ## just check if we're on the lift, if so... the rules are different
-        #if self.on_lift:
-        #    return True
-
         # if just doing a 'within tile move' then crack on...
         if self.x % tile_width:
             return True
@@ -214,118 +193,21 @@ class Harry(Thing):
         if utils.top_of_block(self.y):
             moves = self.get_possible_moves()
             if self.is_going_left() and moves[DIR.LEFT.value]:
-                print("left and can go left")
                 return True
             if self.is_going_right() and moves[DIR.RIGHT.value]:
-                print("right and can go right")
                 return True
-
-        """
-        # are we walking into a step?
-        if self.level.element_at(self.target_tx, self.ty) == 'floor':
-            return False
-
-        # if just doing a 'within tile move' then crack on...
-        if self.x % tile_width:
-            return True
-
-        # check if, at the new position, there is a floor tile under feet.
-        under_foot = self.element_under_foot(calc_next_position=True)
-
-        pt = (self.rect.midbottom[0]+self.dx, self.rect.midbottom[1]+self.dy)
-        under_foot = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(pt)]), "")
-
-
-        moves = self.get_possible_dmoves()
-
-        if under_foot == 'floor':
-            return True
-
-        # if the new block is a ladder then... ok
-        if under_foot == 'ladder':
-
-            # this is for when we're on the ladder or trying to get off the
-            # ladder... make sure we can only move sideways on the ladder
-            # if there's a valid 'floor' in the next tile.
-            moves = self.get_possible_moves()
-            if self.is_going_left() and not moves[2]:
-                return False
-
-            if self.is_going_right() and not moves[3]:
-                return False
-
-            return True
-
-        # if the new tile isn't a floor or ladder...
-        # it might be a fall so return True that we can make the move, even though it's a
-        # bad idea for Harry!
-
-        # However, don't go sideways if we're on a ladder already.
-        current_element = self.element_under_foot(calc_next_position=False)
-        if current_element == 'ladder':
-            return False
-
-        # return True, we can move... even though we're likely to fall.
-        """
         return False
 
     def check_can_move_up_down(self) -> bool:
         """
         Checks to see if a move up or down is possible, i.e. a ladder.
-        This function takes the current direction of travel into account.
-
-        This function is overriden by Hen's as they don't need so much checking,
-        as they have a get_possible_hen_moves() function.
         """
-        ## we can't move up or down on a lift...
-        #if self.on_lift:
-        #    return False
-
-        # if we're not in the middle of a block we can't go up or down, end of.
         if utils.center_of_tile(self.x + config.tile_width//2):
             moves = self.get_possible_moves()
             if self.is_going_up() and moves[DIR.UP.value]:
-                print("up and can go up")
                 return True
             if self.is_going_down() and moves[DIR.DOWN.value]:
-                print("down and can go down")
                 return True
-
-        """
-        under_element = self.element_under_foot(calc_next_position=False)
-
-        # check there is a ladder at his feet (i.e. the bottom tile).
-        lower_element = self.element_at_foot_level(calc_next_position=False)
-        if lower_element == 'ladder':
-
-            # if we're only partially through a block, return true.
-            if not utils.top_of_block(self.y):
-                return True
-
-            # check under his feet that it's a floor, and we're going up!
-            if under_element == 'floor' and self.is_going_up():
-                return True
-
-            # check under his feet is a ladder, and we're going up!
-            if under_element == 'ladder' and self.is_going_up():
-                return True
-
-            # stop him climbing over the end of the ladder
-            upper_element = self.element_at_head_level()
-            if upper_element != 'ladder' and self.is_going_up():
-                return False
-
-            # check under his feet is a ladder, we can go down...
-            if under_element == 'ladder' and self.is_going_down():
-                return True
-
-        # if there isn't a ladder in the bottom tile, is there one
-        # underneath (i.e. is he at the top of the ladder).
-        elif under_element == 'ladder' and self.is_going_down():
-            return True
-
-        return False
-        """
         return False
 
     def process_fall(self) -> None:
@@ -556,7 +438,8 @@ class Harry(Thing):
             return False
 
         # check for any consumables!
-        element = self.object_at_foot_level(calc_next_position=False)
+        pt = (self.rect.centerx, self.rect.y + config.tile_height)
+        element = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         if element and element.name == 'egg':
             self.level.consume_egg(element)
             sounds_thread.consume('egg')

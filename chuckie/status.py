@@ -83,6 +83,8 @@ class Status:
             if self.game_bonus_tick == 5:
                 self.game_bonus_tick = 0
                 self.game_bonus -= 10
+                if self.game_bonus < 0:
+                    self.game_bonus = 0
         return
 
     def draw(self):

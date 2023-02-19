@@ -144,6 +144,35 @@ class Hen(Thing):
             return False
         return True
 
+    def get_possible_moves(self):
+        """
+        Returns a list of bools, that denote if a Hen can go
+        up, down, left or right, in that order.
+        """
+        moves = [False, False, False, False]
+
+        over_head = utils.tile_to_real(self.tx, self.ty - 2)
+        over_head_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(over_head)]), None)
+
+        under_foot = utils.tile_to_real(self.tx, self.ty + 1)
+        under_foot_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_foot)]), None)
+
+        under_left = utils.tile_to_real(self.tx - 1, self.ty + 1)
+        under_left_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_left)]), None)
+
+        under_right = utils.tile_to_real(self.tx + 1, self.ty + 1)
+        under_right_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_right)]), None)
+
+        if over_head_element == 'ladder':
+            moves[0] = True
+        if under_foot_element == 'ladder':
+            moves[1] = True
+        if under_left_element == 'floor' or under_left_element == 'ladder':
+            moves[2] = True
+        if under_right_element == 'floor' or under_right_element == 'ladder':
+            moves[3] = True
+        return moves
+
     def check_for_grain(self):
         """
         Check the next tile to see if it's grain, if it is... eat it!

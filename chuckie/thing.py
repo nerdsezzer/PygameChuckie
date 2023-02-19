@@ -26,9 +26,6 @@ class Thing(pygame.sprite.Sprite):
     """
     This is the base class for a moveable 'thing'.  Harry and the Hens
     both derive from this class.
-
-    Harry's self.state values:  'jump', 'falling', 'walking', 'still'
-    Harry's self.direction values: 'left', 'right', 'up', 'down', and 'splat'
     """
     def __init__(self, name: str, level, start_tile_x, start_tile_y, start_direction):
         pygame.sprite.Sprite.__init__(self)
@@ -87,27 +84,19 @@ class Thing(pygame.sprite.Sprite):
     def tx(self):
         """ tx for the central lower tile """
         real_x = self._hx + (self.rect.width//2)
-        x = real_x / config.tile_width
+        x = real_x // config.tile_width
         return x
 
     @property
     def ty(self):
         """ ty for the central lower tile """
         real_y = self._hy + (self.rect.height//2)
-        y = real_y / config.tile_height
+        y = real_y // config.tile_height
         return y
 
     @property
     def tile(self):
         return self.tx, self.ty
-
-    @property
-    def target_tx(self):
-        return (self.rect.centerx + self.dx) // config.tile_width
-
-    @property
-    def target_ty(self):
-        return (self.rect.centery + self.dy) // config.tile_height
 
     def __str__(self):
         tx, ty = real_to_tile(self._hx, self._hy)
@@ -149,82 +138,3 @@ class Thing(pygame.sprite.Sprite):
             return True
         return False
 
-    def element_at_head_level(self):
-        pt = (self.rect.centerx, self.rect.y)
-        element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(pt)]), None)
-        return element
-
-    def element_under_foot(self, calc_next_position: bool = False, update_x_only: bool = False):
-        """
-        returns the name of the element two tiles below the thing's current
-        position.
-        :param calc_next_position: "current tile" is the post-move position.
-        :param update_x_only: figure out what tile, using x coord and delta.
-        :return: name of the element or None.
-        """
-        """if calc_next_position:
-            pt = (self.rect.centerx + self.hx_velocity,
-                  self.rect.y + self.hy_velocity + (config.tile_height * 2))
-        else:
-            if update_x_only:
-                pt = (self.rect.centerx + self.hx_velocity,
-                      self.rect.y + (config.tile_height * 2))
-            else:
-                pt = (self.rect.centerx,
-                      self.rect.y + (config.tile_height * 2))
-        element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(pt)]), None)"""
-        element = self.level.element_at(self.tx, self.ty + 1)
-        return element
-
-    def element_at_foot_level(self, calc_next_position: bool = False, update_x_only: bool = False):
-        #element = self.object_at_foot_level(calc_next_position, update_x_only)
-        element = self.level.element_at(self.tx, self.ty)
-        return element # .name if element else None
-
-    def object_at_foot_level(self, calc_next_position: bool = False, update_x_only: bool = False):
-        if calc_next_position:
-            pt = (self.rect.centerx + self.hx_velocity,
-                  self.rect.y + self.hy_velocity + config.tile_height)
-        else:
-            if update_x_only:
-                pt = (self.rect.centerx + self.hx_velocity,
-                      self.rect.y + config.tile_height)
-            else:
-                pt = (self.rect.centerx,
-                      self.rect.y + config.tile_height)
-        obj = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
-        return obj
-
-    def get_possible_moves(self):
-        """
-        Returns a list of bools, that denote if a Harry or a Hen can go
-        up, down, left or right, in that order.
-        """
-        moves = [False, False, False, False]
-
-        over_head = utils.tile_to_real(self.tx, self.ty - 2)
-        over_head_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(over_head)]), None)
-
-        head_tile = utils.tile_to_real(self.tx, self.ty - 1)
-        head_tile_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(head_tile)]), None)
-
-        under_foot = utils.tile_to_real(self.tx, self.ty + 1)
-        under_foot_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_foot)]), None)
-
-        under_left = utils.tile_to_real(self.tx - 1, self.ty + 1)
-        under_left_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_left)]), None)
-
-        under_right = utils.tile_to_real(self.tx + 1, self.ty + 1)
-        under_right_element = next(iter([r.name for r in self.level.elements if r.rect.collidepoint(under_right)]), None)
-
-        if over_head_element == 'ladder': # and self.name == "hen":
-            moves[0] = True
-        #if head_tile_element == 'ladder' and self.name == "harry":
-        #    moves[0] = True
-        if under_foot_element == 'ladder':
-            moves[1] = True
-        if under_left_element == 'floor' or under_left_element == 'ladder':
-            moves[2] = True
-        if under_right_element == 'floor' or under_right_element == 'ladder':
-            moves[3] = True
-        return moves
