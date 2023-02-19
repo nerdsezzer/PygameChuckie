@@ -24,8 +24,8 @@ class DIR(Enum):
 
 class Thing(pygame.sprite.Sprite):
     """
-    This is the base class for a moveable 'thing'.  Harry and the Hens
-    both derive from this class.
+    This is the base class for a moveable 'thing'.
+    Harry and the Hens both derive from this class.
     """
     def __init__(self, name: str, level, start_tile_x, start_tile_y, start_direction):
         pygame.sprite.Sprite.__init__(self)
@@ -94,28 +94,14 @@ class Thing(pygame.sprite.Sprite):
         y = real_y // config.tile_height
         return y
 
-    @property
-    def tile(self):
-        return self.tx, self.ty
-
     def __str__(self):
-        tx, ty = real_to_tile(self._hx, self._hy)
         return f"[{self.name}] " \
-               f"x,y=({self._hx:.0f}, {self._hy:.0f})->[{tx:02d}, {ty:02d}], " \
-               f"cen=({self.rect.centerx:.0f}, {self.rect.centery:.0f}), tile=[{self.tx},{self.ty}], " \
+               f"center=({self.rect.centerx:.0f}, {self.rect.centery:.0f}), tile=[{self.tx},{self.ty}], " \
                f"dx={self.hx_velocity:.2f}, dy={self.hy_velocity:.2f}, " \
                f"'{self.direction}'|'{self.state}'"
 
-    def get_state(self):
-        return self.__str__()
-
     def dump_state(self, prefix=""):
-        print(prefix+self.get_state())
-        return
-
-    def debug(self, s: str):
-        if config.debug_display:
-            print(f"{self.name}: {s}")
+        print(prefix+self.__str__())
         return
 
     def is_going_up(self):
