@@ -285,3 +285,10 @@ class Level:
         pt = utils.tile_to_real(tx, ty)
         element = next(iter([r.name for r in self.all_landables() if r.rect.collidepoint(pt)]), None)
         return element
+
+    @staticmethod
+    def is_outside_playable_area(thing):
+        return thing.x > config.right_limit \
+               or thing.x < config.left_limit \
+               or thing.y > config.top_limit \
+               or thing.y < config.bottom_limit

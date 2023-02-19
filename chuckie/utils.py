@@ -2,12 +2,6 @@ import config
 from config import tile_width, tile_height
 
 
-def snap_to_tile(x, y):
-    adj_x = (x // tile_width) * tile_width
-    adj_y = (y // tile_height) * tile_height
-    return adj_x, adj_y
-
-
 def tile_to_real(x, y):
     real_x = x * tile_width
     real_y = y * tile_height
@@ -28,17 +22,9 @@ def real_to_tile(real_x, real_y):
 
 
 def top_of_block(real_y):
-    return not real_y % config.tile_height
+    return real_y % config.tile_height == 0
 
 
-def middle_of_block(real_x):
-    return not real_x % config.tile_width
+def left_edge_of_block(real_x):
+    return real_x % config.tile_width == 0
 
-def center_of_tile(real_x):
-    return (real_x % config.tile_width) == config.tile_width//2
-
-def is_outside_playable_area(thing):
-    return thing.x > config.right_limit \
-           or thing.x < config.left_limit \
-           or thing.y > config.top_limit \
-           or thing.y < config.bottom_limit

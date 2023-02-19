@@ -195,7 +195,7 @@ class Harry(Thing):
         """
         Checks to see if a move up or down is possible, i.e. we're on a ladder.
         """
-        if utils.center_of_tile(self.x + config.tile_width//2):
+        if utils.left_edge_of_block(self.x):
             moves = self.get_possible_moves()
             if self.is_going_up() and moves[DIR.UP.value]:
                 return True
@@ -266,7 +266,7 @@ class Harry(Thing):
             return
 
         if (w_key_down or s_key_down) \
-                and utils.middle_of_block(self.x + self.dx) \
+                and utils.left_edge_of_block(self.x + self.dx) \
                 and obj and obj.name == 'ladder':
             # he's jumping 'through' a ladder, grab it!
             # update x and y, make sure both snap to the ladder's full tile.
@@ -325,7 +325,7 @@ class Harry(Thing):
         pt = utils.tile_to_real(self.tx, self.ty + 1)
         element = next(iter([r for r in self.level.all_landables() if r.rect.collidepoint(pt)]), None)
         if not element or (element.name != 'floor' and element.name != 'ladder'):
-            if utils.middle_of_block(self.x):
+            if utils.left_edge_of_block(self.x):
                 fall = True
 
         if fall:
@@ -410,7 +410,7 @@ class Harry(Thing):
             sounds_thread.walking_off()
 
         # check we didn't fall or jump out of the level!
-        if utils.is_outside_playable_area(self):
+        if self.level.is_outside_playable_area(self):
             self.state = STATE.SPLAT
             sounds_thread.walking_off()
             return False
