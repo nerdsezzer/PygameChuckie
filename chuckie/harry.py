@@ -44,20 +44,16 @@ class Harry(Thing):
         self.state = STATE.STILL
         self.on_lift = False
 
-        self.dump_state()
         self.draw()
         return
 
     def __str__(self):
-        s = super().__str__()
-        return f"{s}, " \
-               f"calc'd=[{(self.x / tile_width):.2f},{(self.y / tile_height):.2f}], " \
-               f"y_velocity={self.y_velocity}, " \
+        return f"{super().__str__()}, y_velocity={self.y_velocity}, " \
                f"under={self.level.element_at(self.tx, self.ty+1)} "
 
     def draw(self):
         """
-        Figure out what sprite image is needed, Harry has two modes, up-down or
+        Figure out which sprite image is needed, Harry has two modes, up-down or
         left-right.  Both comprise a set of 4 images.
         """
         # increment, and wrap if necessary, frame value.
@@ -139,9 +135,6 @@ class Harry(Thing):
         moves = [False, False, True, True]
 
         items = self.level.all_landables()
-        over_head = utils.tile_to_real(self.tx, self.ty-2)
-        over_head_element = next(iter([r.name for r in items if r.rect.collidepoint(over_head)]), "")
-
         head_tile = utils.tile_to_real(self.tx, self.ty-1)
         head_tile_element = next(iter([r.name for r in items if r.rect.collidepoint(head_tile)]), "")
 
@@ -200,7 +193,7 @@ class Harry(Thing):
 
     def check_can_move_up_down(self) -> bool:
         """
-        Checks to see if a move up or down is possible, i.e. a ladder.
+        Checks to see if a move up or down is possible, i.e. we're on a ladder.
         """
         if utils.center_of_tile(self.x + config.tile_width//2):
             moves = self.get_possible_moves()
@@ -215,11 +208,11 @@ class Harry(Thing):
         Updates Harry's coordinates, given that he is falling.  Check to see if
         he lands on a floor tile, updates direction and deltas if this happens.
         """
-        # work out new position
+        # work out new position.
         self.y += self.dy
 
         # check to see if we've landed.
-        pt = (self.rect.midbottom[0]+self.dx, self.rect.midbottom[1]+self.dy)
+        pt = self.rect.midbottom[0] + self.dx, self.rect.midbottom[1] + self.dy
         obj = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         if obj and obj.name == 'floor':
             self.x = self.x + self.dx
@@ -233,12 +226,13 @@ class Harry(Thing):
         """
         Updates Harry's coordinates, given that he is jumping.  Do the maths,
         update his current location, and check to see if either he can grab a
-        ladder as he flies past, or whether he's landed.
+        ladder as he flies past, or whether he's landed on a floor, or lift.
         """
         self.y_velocity += gravity
         self.dy = self.y_velocity
+
+        # we need an extra boost when jumping on or from a lift
         if self.on_lift:
-            # we need an extra boost when jumping on or from a lift
             self.dy += 1.5 * config.jump_height
             self.on_lift = False
 
@@ -302,15 +296,13 @@ class Harry(Thing):
         By the time this function is called, x and y will have been updated,
         but rect won't have as we haven't called draw() yet...
         """
-        pt = self.rect.midbottom[0]+self.dx, self.rect.midbottom[1] + 1
-        #pt = utils.tile_to_real(self.tx, self.ty+1)
+        pt = self.rect.midbottom[0] + self.dx, self.rect.midbottom[1] + 1
         lift = next(iter([r for r in self.level.all_landables() if r.rect.collidepoint(pt)]), None)
         if not lift or lift.name != 'lift':
             return False
 
         fall = False
         remainder = (self.rect.centerx + self.dx) % tile_width
-        print(f"on lift... remainder={remainder}")
         if lift.direction == DIR.LEFT and self.is_going_left():
             if remainder <= (tile_width//4):
                 fall = True
@@ -328,13 +320,9 @@ class Harry(Thing):
     def check_edge_falling(self):
         """
         This function tests to see if harry has walked off the edge of a floor tile.
-        By the time this function is called, x and y will have been updated,
-        but rect won't have as we haven't called draw() yet...
         """
         fall = False
-        #pt = self.rect.midbottom[0] + self.dx - (config.harry_hx_velocity if self.is_going_right() else 0), \
-        #    self.rect.midbottom[1] + 1
-        pt = utils.tile_to_real(self.tx, self.ty+1)
+        pt = utils.tile_to_real(self.tx, self.ty + 1)
         element = next(iter([r for r in self.level.all_landables() if r.rect.collidepoint(pt)]), None)
         if not element or (element.name != 'floor' and element.name != 'ladder'):
             if utils.middle_of_block(self.x):
@@ -348,19 +336,11 @@ class Harry(Thing):
 
     def process_move(self) -> None:
         """
-        Based on delta values which were set up when processing key presses,
-        decide if the move is valid.
-
-        check_can_move_sideways() and check_can_move_up_down() doing alot
-        of the heavy lifting here.
+        If we're moving, the speed (dx, dy values) and direction will have
+        been updated by the keypress handlers above.  So we need to check if
+        we can make the move, before updating the x,y co-ordinates.
         """
-        # if we're moving, the speed and direction will have been updated
-        # by the keypress handlers above.  So we need to check if we can
-        # make the move, before updating the hx and hy co-ordinates.
-
         if self.dx != 0:
-
-            # check if we can make a sideways move...
             if self.check_can_move_sideways() or self.on_lift:
                 self.state = STATE.WALKING
                 self.x += self.dx
@@ -375,8 +355,6 @@ class Harry(Thing):
                 self.check_edge_falling()
 
         if self.dy != 0 and not self.on_lift and self.state != STATE.FALLING and self.state != STATE.JUMP:
-
-            # check if we can move up or down...
             if self.check_can_move_up_down():
                 self.state = STATE.WALKING
                 self.y += self.dy
@@ -397,11 +375,10 @@ class Harry(Thing):
         6. check for any consumables at new position.
 
         Return:
-        True for all's ok, or
-        False for not ok (i.e. we've splatted).
+        True for all's OK, or
+        False for not OK (i.e. we've splatted).
         """
-        # if we're not falling update Harry's state based
-        # on key-presses, this updates the deltas and direction values.
+        # if we're not falling update Harry's state based on keys pressed
         if self.state != STATE.FALLING:
             self.update_based_on_controls(ctrls)
 
@@ -409,6 +386,7 @@ class Harry(Thing):
             sounds_thread.walking_off()
             return True
 
+        # if we're on the lift, update the y position.
         if self.on_lift:
             self.process_lift()
 
@@ -438,7 +416,7 @@ class Harry(Thing):
             return False
 
         # check for any consumables!
-        pt = (self.rect.centerx, self.rect.y + config.tile_height)
+        pt = self.rect.centerx, self.rect.y + config.tile_height
         element = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         if element and element.name == 'egg':
             self.level.consume_egg(element)
