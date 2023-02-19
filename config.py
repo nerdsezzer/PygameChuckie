@@ -57,7 +57,7 @@ hens_are_friendly = False
 #
 # settings to support debug...
 #
-start_paused = False
+start_paused = True
 debug_display = False
 debug_harry = False
 debug_hens = False
