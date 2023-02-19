@@ -9,6 +9,8 @@ class Controls:
     Class to collate key presses and key releases.
     """
 
+    HALF_SECOND_TICK = pygame.USEREVENT+1
+
     def __init__(self):
         self.a_down = False
         self.d_down = False
@@ -31,7 +33,7 @@ class Controls:
         s += "]"
         return f"{s}, space={self.space_down}, paused={self.paused}"
 
-    def process_events(self):
+    def process_events(self, tick_handler):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -39,6 +41,9 @@ class Controls:
                     sys.exit()
                 finally:
                     self.quit = True
+
+            if event.type == Controls.HALF_SECOND_TICK:
+                tick_handler(self.paused)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == ord('p') or event.key == pygame.K_ESCAPE:
