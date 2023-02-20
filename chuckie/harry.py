@@ -38,6 +38,13 @@ class Harry(Thing):
         self.image = self.images_left_right[0]
         self.init_rect(self.image, start_tile_x, start_tile_y)
 
+        self.step = pygame.mixer.Sound(os.path.join('.', 'step.wav'))
+        self.jump = pygame.mixer.Sound(os.path.join('.', 'jump.wav'))
+        self.fall = pygame.mixer.Sound(os.path.join('.', 'fall.wav'))
+        self.egg = pygame.mixer.Sound(os.path.join('.', 'egg.wav'))
+        self.grain = pygame.mixer.Sound(os.path.join('.', 'grain.wav'))
+        self.ladder = pygame.mixer.Sound(os.path.join('.', 'ladder.wav'))
+
         if config.debug_harry:
             print(f"putting harry at [{start_tile_x}, {start_tile_y}]")
 
@@ -79,10 +86,13 @@ class Harry(Thing):
             by_deltas()
         else:
             if self.direction == DIR.RIGHT:
+                pygame.mixer.Sound.play(self.step)
                 self.image = self.images_left_right[self.frame]
             elif self.direction == DIR.LEFT:
+                pygame.mixer.Sound.play(self.step)
                 self.image = pygame.transform.flip(self.images_left_right[self.frame], True, False)
             elif (self.direction == DIR.UP or self.direction == DIR.DOWN) and self.dy != 0:
+                pygame.mixer.Sound.play(self.ladder)
                 self.image = self.images_up_down[self.frame]
             else:
                 by_deltas()
@@ -118,6 +128,7 @@ class Harry(Thing):
             self.dy = config.harry_default_hy_velocity
 
         if ctrls.space_down:
+            pygame.mixer.Sound.play(self.jump)
             ctrls.space_down = False
             self.state = STATE.JUMP
             self.y_velocity = jump_height
@@ -315,6 +326,8 @@ class Harry(Thing):
             self.state = STATE.FALLING
             self.dx = 0
             self.dy = config.harry_falling_hy_velocity
+            pygame.mixer.Sound.play(self.fall)
+
         return True
 
     def check_edge_falling(self):
@@ -332,6 +345,7 @@ class Harry(Thing):
             self.state = STATE.FALLING
             self.dx = 0
             self.dy = config.harry_falling_hy_velocity
+            pygame.mixer.Sound.play(self.fall)
         return
 
     def process_move(self) -> None:
@@ -364,7 +378,7 @@ class Harry(Thing):
 
         return
 
-    def move(self, ctrls, sounds_thread) -> bool:
+    def move(self, ctrls) -> bool:
         """
         Harry has an x,y position and dx,dy speeds.
         1. determine change in speed/direction from key-presses.
@@ -383,7 +397,6 @@ class Harry(Thing):
             self.update_based_on_controls(ctrls)
 
         if self.dx == 0 and self.dy == 0:
-            sounds_thread.walking_off()
             return True
 
         # if we're on the lift, update the y position.
@@ -404,15 +417,9 @@ class Harry(Thing):
 
         self.draw()
 
-        if self.dx != 0 or self.dy != 0:
-            sounds_thread.walking_on(self)
-        else:
-            sounds_thread.walking_off()
-
         # check we didn't fall or jump out of the level!
         if self.level.is_outside_playable_area(self):
             self.state = STATE.SPLAT
-            sounds_thread.walking_off()
             return False
 
         # check for any consumables!
@@ -420,8 +427,8 @@ class Harry(Thing):
         element = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         if element and element.name == 'egg':
             self.level.consume_egg(element)
-            sounds_thread.consume('egg')
+            pygame.mixer.Sound.play(self.egg)
         if element and element.name == "grain":
             self.level.consume_grain(element)
-            sounds_thread.consume('grain')
+            pygame.mixer.Sound.play(self.grain)
         return True
