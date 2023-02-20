@@ -33,6 +33,24 @@ class Controls:
         s += "]"
         return f"{s}, space={self.space_down}, paused={self.paused}"
 
+    def process_events_for_input(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                try:
+                    sys.exit()
+                finally:
+                    self.quit = True
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return -1
+                if event.key == pygame.K_RETURN:
+                    print("got enter")
+                    return -2
+                return event.unicode
+        return
+
     def process_events(self, tick_handler):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -42,11 +60,12 @@ class Controls:
                 finally:
                     self.quit = True
 
-            if event.type == Controls.HALF_SECOND_TICK:
+            if event.type == Controls.HALF_SECOND_TICK and tick_handler:
                 tick_handler(self.paused)
 
             if event.type == pygame.KEYDOWN:
-                if event.key == ord('p') or event.key == pygame.K_ESCAPE:
+                if event.key == ord('p') or event.key == pygame.K_ESCAPE \
+                        or (event.key == ord('s') and not tick_handler):
                     self.paused = not self.paused
                     print(f"paused {self.paused}")
                 if event.key == ord('w'):

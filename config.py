@@ -22,7 +22,6 @@ right_limit = 22*tile_width
 bottom_limit = 0*tile_height
 top_limit = 28*tile_height      # note this one is +4'd to allow Harry to jump and come back!
 
-
 #
 # "physics" values
 #
@@ -43,6 +42,13 @@ hen_hy_velocity = tile_height / 2
 lift_hy_velocity = 0 - (tile_height / 6)
 
 #
+# the font for all text...
+#
+#font_name = "FifteenNarrow.ttf"
+font_name = "bedstead.otf"
+#font_name = "BBC Micro Mode 7.ttf"
+
+#
 # make_it_easy, setting this to True means the level is won,
 # just picking up on egg, will complete the level
 #
@@ -58,6 +64,10 @@ hens_are_friendly = False
 # settings to support debug...
 #
 start_paused = True
+
+#
+# settings to support debug...
+#
 debug_display = False
 debug_harry = False
 debug_hens = False

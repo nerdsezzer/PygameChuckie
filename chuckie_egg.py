@@ -9,7 +9,6 @@ from chuckie.controls import Controls
 from chuckie.status import Status
 from chuckie.level import Level
 from chuckie.level_data import levels
-from chuckie.sounds import SoundsThread
 
 
 # Set up the game window
@@ -18,6 +17,7 @@ clock = pygame.time.Clock()
 pygame.init()
 fps = 20
 
+font = pygame.font.Font(os.path.join('.', config.font_name), 36)
 
 if debug_display:
     """
@@ -28,31 +28,56 @@ if debug_display:
     print(f"tile width={tile_width}, height={tile_height}")
 
 # Ok, lets do this...
-status = Status()
+status = Status(font)
 ctrls = Controls()
-level = Level(levels[status.game_level], status)
-level.create()
+
+
+pygame.mixer.init()
+opps = pygame.mixer.Sound(os.path.join('.', 'opps.wav'))
+start = pygame.mixer.Sound(os.path.join('.', 'start.wav'))
 
 
 # -----------------------------------------------------------------------------
 # Util functions
 # -----------------------------------------------------------------------------
 
-def _screen(text_one: str, text_two: str = None):
+def _screen(text_one: str, text_two: str = None, take_input: bool = False):
     delay = 40
+    name = ""
+
+    window.fill([0, 0, 0])
     while delay:
         time.sleep(0.05)
-        window.fill([0, 0, 0])
-        font = pygame.font.SysFont('Arial', 36)
+
         text_surface = font.render(text_one, False, pygame.color.Color('yellow'))
-        window.blit(text_surface, (550, 420))
+        x = (window.get_width()-text_surface.get_width()) // 2
+        window.blit(text_surface, (x, 420))
+
         if text_two:
             text_surface = font.render(text_two, False, pygame.color.Color('cyan'))
-            window.blit(text_surface, (565, 480))
+            window.blit(text_surface, (300, 480))
+            x = 300 + text_surface.get_width() + 20
+
+        if take_input:
+            key = ctrls.process_events_for_input()
+            if key:
+                if key == -1:
+                    take_input = False
+                    name = ""
+                elif key == -2:
+                    take_input = False
+                else:
+                    text_surface = font.render(name, False, pygame.color.Color('black'))
+                    window.blit(text_surface, (x, 480))
+                    name += key
+                    text_surface = font.render(name, False, pygame.color.Color('white'))
+                    window.blit(text_surface, (x, 480))
+        else:
+            delay -= 1
+
         pygame.display.flip()
         clock.tick(fps)
-        delay -= 1
-    return
+    return name
 
 
 def get_ready_screen():
@@ -64,24 +89,91 @@ def oh_dear_screen():
 
 
 def all_done_screen():
-    return _screen("Well Done")
+    return _screen("Well Done", "Please enter your name:", True)
 
+
+scores = [('Nigel A.', 198300), ('A&F', 80000), ('A&F', 70000), ('A&F', 60000),
+            ('A&F', 50000), ('A&F', 40000), ('A&F', 30000), ('A&F', 20000),
+            ('A&F', 10000), ('nerdSezzer', 5000)]
+
+
+def get_high_scores():
+    global scores
+    return scores
+
+
+def update_high_scores(new_name, new_score):
+    global scores
+    for name, score in get_high_scores():
+        if new_score > score:
+            x = scores.index((name, score))
+            n = scores[:x]
+            n.append((new_name, new_score))
+            n += scores[x:-1]
+            scores = n
+    return
+
+
+def high_scores_screen():
+    while ctrls.paused:
+        time.sleep(0.05)
+        window.fill([0, 0, 0])
+        title_font = pygame.font.Font(os.path.join('.', config.font_name), 72)
+        text_surface = title_font.render("CHUCKIE EGG", False, pygame.color.Color('yellow'))
+        x = (config.window_width - text_surface.get_width()) // 2
+        y = 120
+        window.blit(text_surface, (x, y))
+        y += text_surface.get_height()
+
+        sub_title_font = font
+        text_surface = sub_title_font.render("HIGH SCORES", False, pygame.color.Color('yellow'))
+        x = (config.window_width - text_surface.get_width()) // 2
+        y += 20
+        window.blit(text_surface, (x, y))
+        y += text_surface.get_height()
+
+        y += 40
+        scores = get_high_scores()
+        for name, score in scores:
+            index = scores.index((name, score))
+            text_surface = sub_title_font.render(f"{index+1}", False, pygame.color.Color('green'))
+            window.blit(text_surface, (440, y))
+            text_surface = sub_title_font.render(f"{score}", False, pygame.color.Color('green'))
+            window.blit(text_surface, (620-text_surface.get_width(), y))
+            text_surface = sub_title_font.render(name, False, pygame.color.Color('green'))
+            window.blit(text_surface, (640, y))
+            y += text_surface.get_height()
+            y += 10
+
+        start_one = font
+        text_surface = start_one.render("Press S to start", False, pygame.color.Color('yellow'))
+        x = (config.window_width - text_surface.get_width()) // 2
+        y += 40
+        window.blit(text_surface, (x, y))
+
+        pygame.display.flip()
+        clock.tick(fps)
+        ctrls.process_events(None)
+
+    pygame.mixer.Sound.play(start)
+    return
 
 # -----------------------------------------------------------------------------
 # main loop
 # -----------------------------------------------------------------------------
 
 
-pygame.mixer.init()
-opps = pygame.mixer.Sound(os.path.join('.', 'opps.wav'))
-start = pygame.mixer.Sound(os.path.join('.', 'start.wav'))
-
 pygame.time.set_timer(ctrls.HALF_SECOND_TICK, 500)
 
 all_done = False
 tick = False
 
+level = Level(levels[status.game_level], status)
+level.create()
+
 while not all_done:
+
+    high_scores_screen()
 
     while status.game_lives > 0:
 
@@ -115,12 +207,14 @@ while not all_done:
                 # have we completed the game?
                 status.game_level += 1
                 if status.game_level >= len(levels):
-                    all_done_screen()
-                    all_done = True
-                    break
-
-                # stall for a bit...
-                get_ready_screen()
+                    name = all_done_screen()
+                    update_high_scores(name, status.game_score)
+                    ctrls = Controls()
+                    high_scores_screen()
+                    status.game_level = 0
+                else:
+                    # stall for a bit...
+                    get_ready_screen()
 
                 # recreate Level with the next lot of game data.
                 level = Level(levels[status.game_level], status)

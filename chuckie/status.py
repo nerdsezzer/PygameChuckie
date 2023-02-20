@@ -13,7 +13,7 @@ class Status:
     NEW_LIFE_SCORE = 10000
     GRAIN_PAUSE_LENGTH = 10
 
-    def __init__(self):
+    def __init__(self, _font):
         """
         Time, starts at 900 every level, ticks down 10 every 5 seconds.
         Bonus, starts at 1000*level, ticks down 10 every 5 time ticks.
@@ -30,7 +30,7 @@ class Status:
         self._start_left = 1
 
         pygame.font.init()
-        self._font = pygame.font.SysFont('Arial', 36, 'normal')
+        self._font = _font
         self._colour = (255, 165, 0)
 
         self.icons = pygame.sprite.Group()
@@ -110,7 +110,7 @@ class Status:
         return self.game_lives
 
     def update_score_end_of_level(self, window, level, clock, fps):
-        step = 25
+        step = (self.game_bonus // 10)
         while self.game_bonus > 0:
             if self.game_bonus < step:
                 self.game_score += self.game_bonus
