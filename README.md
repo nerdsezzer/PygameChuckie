@@ -1,21 +1,21 @@
 # PygameChuckie
 
-Turtle was too rubbish with key presses.  :(
-So pygame works.
+A game written in python, inspired by Chuckie Egg (1983).
+Many happy hours playing against my whole family, trying to avoid 
+the flying duck and not fall off of the lifts.
+
+## Instructions 
+
+
+## Getting started
+
+This version has been tested on Ubuntu 20.04 and windows 10.
+
+You will require a python3 installation, and the 
+pygame package:
+
+> pip3 install pygame
 
 
 
-Installation - Linux 
-Tested on Ubuntu 20.04
-
-You will require python3.
-
-either pip3 install pygame
-
-
-https://www.alsa-project.org/main/index.php/Main_Page
-
-sudo apt-get install alsa-utils
-
-https://stackoverflow.com/questions/64638256/pygame-midi-libasound-module-conf-pulse-so-error-unable-to-open-slave
 
