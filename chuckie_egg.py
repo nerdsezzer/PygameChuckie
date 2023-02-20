@@ -1,6 +1,7 @@
 import pygame
 import pygame.midi
 import time
+import os
 
 import config
 from config import tile_width, tile_height, debug_display
@@ -71,8 +72,9 @@ def all_done_screen():
 # -----------------------------------------------------------------------------
 
 
-sounds = SoundsThread()
-sounds.start()
+pygame.mixer.init()
+opps = pygame.mixer.Sound(os.path.join('.', 'opps.wav'))
+start = pygame.mixer.Sound(os.path.join('.', 'start.wav'))
 
 pygame.time.set_timer(ctrls.HALF_SECOND_TICK, 500)
 
@@ -91,17 +93,19 @@ while not all_done:
             level.update_lifts()
 
             # update Harry's location, and check for death!
-            if not level.harry.move(ctrls, sounds) \
+            if not level.harry.move(ctrls) \
                     or level.check_lift_death() \
                     or level.check_collision() \
                     or status.is_time_up():
 
+                pygame.mixer.Sound.play(opps)
                 if not status.on_harry_died():
                     break
 
                 # or stall for 2 seconds
                 get_ready_screen()
                 level.reset()
+                pygame.mixer.Sound.play(start)
 
             # check we've completed the level?
             if level.are_all_eggs_collected():
@@ -121,6 +125,7 @@ while not all_done:
                 # recreate Level with the next lot of game data.
                 level = Level(levels[status.game_level], status)
                 level.create()
+                pygame.mixer.Sound.play(start)
                 break
 
         # normal game tick,d
@@ -135,7 +140,6 @@ while not all_done:
         oh_dear_screen()
         break
 
-del sounds.player
 pygame.midi.quit()
 
 
