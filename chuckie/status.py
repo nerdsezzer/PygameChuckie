@@ -29,23 +29,26 @@ class Status:
         self._bottom_level_tile = 4
         self._start_left = 1
 
+        pygame.font.init()
+        self._font = pygame.font.SysFont('Arial', 36, 'normal')
+        self._colour = (255, 165, 0)
+
         self.icons = pygame.sprite.Group()
         self.img = pygame.image.load(os.path.join('.', 'images', 'hat.png')).convert()
         self.img.convert_alpha()
         self.img.set_colorkey((0, 0, 0))
         self._update_icons()
-
-        pygame.font.init()
-        self._font = pygame.font.SysFont('Arial', 36, 'normal')
-        self._colour = (255, 165, 0)
         return
 
     def _update_icons(self):
+        # work out the width of the work 'SCORE' in the font
+        text_surface = self._font.render("SCORE  ", False, self._colour)
+
         for i in range(0, self.game_lives):
             icon = pygame.sprite.Sprite()
             icon.image = self.img
             icon.rect = self.img.get_rect()
-            x = (self._start_left + 3.25) * config.tile_width
+            x = (self._start_left * config.tile_width) + text_surface.get_width()
             icon.rect.x = x + (i * icon.rect.width + 20)
             icon.rect.y = 3.5 * config.tile_height
             self.icons.add(icon)
