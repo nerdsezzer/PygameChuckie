@@ -4,6 +4,8 @@ A game written in python, inspired by Chuckie Egg (1983).
 Many happy hours playing against my whole family, trying to avoid 
 the flying duck and not fall off of the lifts.
 
+![Level One](level1.png)
+
 ## Instructions 
 
 
