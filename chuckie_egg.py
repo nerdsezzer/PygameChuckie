@@ -9,6 +9,7 @@ from chuckie.controls import Controls
 from chuckie.status import Status
 from chuckie.level import Level
 from chuckie.level_data import levels
+from high_scores import HighScores
 
 
 # Set up the game window
@@ -30,7 +31,7 @@ if debug_display:
 # Ok, lets do this...
 status = Status(font)
 ctrls = Controls()
-
+high_scores = HighScores()
 
 pygame.mixer.init()
 opps = pygame.mixer.Sound(os.path.join('.', 'opps.wav'))
@@ -55,10 +56,11 @@ def _screen(text_one: str, text_two: str = None, take_input: bool = False):
 
         if text_two:
             text_surface = font.render(text_two, False, pygame.color.Color('cyan'))
-            window.blit(text_surface, (300, 480))
-            x = 300 + text_surface.get_width() + 20
+            x = 300 if take_input else (window.get_width()-text_surface.get_width()) // 2
+            window.blit(text_surface, (x, 480))
 
         if take_input:
+            x = 300 + text_surface.get_width() + 20
             key = ctrls.process_events_for_input()
             if key:
                 if key == -1:
@@ -92,72 +94,6 @@ def all_done_screen():
     return _screen("Well Done", "Please enter your name:", True)
 
 
-scores = [('Nigel A.', 198300), ('A&F', 80000), ('A&F', 70000), ('A&F', 60000),
-            ('A&F', 50000), ('A&F', 40000), ('A&F', 30000), ('A&F', 20000),
-            ('A&F', 10000), ('nerdSezzer', 5000)]
-
-
-def get_high_scores():
-    global scores
-    return scores
-
-
-def update_high_scores(new_name, new_score):
-    global scores
-    for name, score in get_high_scores():
-        if new_score > score:
-            x = scores.index((name, score))
-            n = scores[:x]
-            n.append((new_name, new_score))
-            n += scores[x:-1]
-            scores = n
-    return
-
-
-def high_scores_screen():
-    while ctrls.paused:
-        time.sleep(0.05)
-        window.fill([0, 0, 0])
-        title_font = pygame.font.Font(os.path.join('.', config.font_name), 72)
-        text_surface = title_font.render("CHUCKIE EGG", False, pygame.color.Color('yellow'))
-        x = (config.window_width - text_surface.get_width()) // 2
-        y = 120
-        window.blit(text_surface, (x, y))
-        y += text_surface.get_height()
-
-        sub_title_font = font
-        text_surface = sub_title_font.render("HIGH SCORES", False, pygame.color.Color('yellow'))
-        x = (config.window_width - text_surface.get_width()) // 2
-        y += 20
-        window.blit(text_surface, (x, y))
-        y += text_surface.get_height()
-
-        y += 40
-        scores = get_high_scores()
-        for name, score in scores:
-            index = scores.index((name, score))
-            text_surface = sub_title_font.render(f"{index+1}", False, pygame.color.Color('green'))
-            window.blit(text_surface, (440, y))
-            text_surface = sub_title_font.render(f"{score}", False, pygame.color.Color('green'))
-            window.blit(text_surface, (620-text_surface.get_width(), y))
-            text_surface = sub_title_font.render(name, False, pygame.color.Color('green'))
-            window.blit(text_surface, (640, y))
-            y += text_surface.get_height()
-            y += 10
-
-        start_one = font
-        text_surface = start_one.render("Press S to start", False, pygame.color.Color('yellow'))
-        x = (config.window_width - text_surface.get_width()) // 2
-        y += 40
-        window.blit(text_surface, (x, y))
-
-        pygame.display.flip()
-        clock.tick(fps)
-        ctrls.process_events(None)
-
-    pygame.mixer.Sound.play(start)
-    return
-
 # -----------------------------------------------------------------------------
 # main loop
 # -----------------------------------------------------------------------------
@@ -173,7 +109,8 @@ level.create()
 
 while not all_done:
 
-    high_scores_screen()
+    high_scores.high_scores_screen(ctrls, window, font, clock, fps)
+    pygame.mixer.Sound.play(start)
 
     while status.game_lives > 0:
 
@@ -208,9 +145,10 @@ while not all_done:
                 status.game_level += 1
                 if status.game_level >= len(levels):
                     name = all_done_screen()
-                    update_high_scores(name, status.game_score)
+                    high_scores.update_high_scores(name, status.game_score)
                     ctrls = Controls()
-                    high_scores_screen()
+                    high_scores.high_scores_screen(ctrls, window, font, clock, fps)
+                    pygame.mixer.Sound.play(start)
                     status.game_level = 0
                 else:
                     # stall for a bit...
