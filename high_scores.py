@@ -1,6 +1,7 @@
 import time
 import pygame
 import os
+import sys
 
 import config
 
@@ -23,7 +24,71 @@ class HighScores:
                 n.append((new_name, new_score))
                 n += self.scores[x:-1]
                 self.scores = n
+                return
         return
+
+    @staticmethod
+    def process_events_for_input():
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                try:
+                    sys.exit()
+                finally:
+                    print("done.")
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return -1
+                if event.key == pygame.K_RETURN:
+                    return -2
+                if event.key == pygame.K_BACKSPACE:
+                    return -3
+                return event.unicode
+        return
+
+    def well_done_screen(self, window, font, clock, fps):
+        delay = 40
+        name = ""
+        take_input = True
+        window.fill([0, 0, 0])
+        while delay:
+            time.sleep(0.05)
+
+            text_surface = font.render("Well Done", False, pygame.color.Color('yellow'))
+            x = (window.get_width() - text_surface.get_width()) // 2
+            window.blit(text_surface, (x, 420))
+
+            text_surface = font.render("Please enter your name:", False, pygame.color.Color('cyan'))
+            window.blit(text_surface, (300, 480))
+
+            x = 300 + text_surface.get_width() + 20
+            if take_input:
+                key = self.process_events_for_input()
+                if key:
+                    if key == -1:
+                        take_input = False
+                        name = ""
+                    elif key == -2:
+                        take_input = False
+                    elif key == -3:
+                        text_surface = font.render(name, False, pygame.color.Color('black'))
+                        window.blit(text_surface, (x, 480))
+                        name = name[:-1]
+                        text_surface = font.render(name, False, pygame.color.Color('white'))
+                        window.blit(text_surface, (x, 480))
+                    else:
+                        text_surface = font.render(name, False, pygame.color.Color('black'))
+                        window.blit(text_surface, (x, 480))
+                        name += key
+                        text_surface = font.render(name, False, pygame.color.Color('white'))
+                        window.blit(text_surface, (x, 480))
+            else:
+                delay -= 1
+
+            pygame.display.flip()
+            clock.tick(fps)
+        return name
 
     def high_scores_screen(self, ctrls, window, font, clock, fps):
         while ctrls.paused:

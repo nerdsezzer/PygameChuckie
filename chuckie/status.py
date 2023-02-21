@@ -24,6 +24,7 @@ class Status:
         self.game_bonus = 1000 * (self.game_level+1)
         self.game_pause = 0
         self.game_lives = Status.GAME_START_LIVES
+        self.game_lives_added = 0
 
         self._top_level_tile = 2
         self._bottom_level_tile = 4
@@ -71,8 +72,10 @@ class Status:
         return
 
     def _check_score(self):
-        if self.game_score > Status.NEW_LIFE_SCORE:
-            self.game_score -= Status.NEW_LIFE_SCORE
+        if self.game_score - (self.game_lives_added * Status.NEW_LIFE_SCORE) > Status.NEW_LIFE_SCORE:
+            print("new life!")
+            # @ todo it should play a sound here! level up, maybe?
+            self.game_lives_added += 1
             self.game_lives += 1
             self._update_icons()
         return

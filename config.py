@@ -44,9 +44,7 @@ lift_hy_velocity = 0 - (tile_height / 6)
 #
 # the font for all text...
 #
-#font_name = "FifteenNarrow.ttf"
 font_name = "bedstead.otf"
-#font_name = "BBC Micro Mode 7.ttf"
 
 #
 # make_it_easy, setting this to True means the level is won,

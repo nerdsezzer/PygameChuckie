@@ -44,8 +44,6 @@ start = pygame.mixer.Sound(os.path.join('.', 'start.wav'))
 
 def _screen(text_one: str, text_two: str = None, take_input: bool = False):
     delay = 40
-    name = ""
-
     window.fill([0, 0, 0])
     while delay:
         time.sleep(0.05)
@@ -56,30 +54,13 @@ def _screen(text_one: str, text_two: str = None, take_input: bool = False):
 
         if text_two:
             text_surface = font.render(text_two, False, pygame.color.Color('cyan'))
-            x = 300 if take_input else (window.get_width()-text_surface.get_width()) // 2
+            x = (window.get_width()-text_surface.get_width()) // 2
             window.blit(text_surface, (x, 480))
 
-        if take_input:
-            x = 300 + text_surface.get_width() + 20
-            key = ctrls.process_events_for_input()
-            if key:
-                if key == -1:
-                    take_input = False
-                    name = ""
-                elif key == -2:
-                    take_input = False
-                else:
-                    text_surface = font.render(name, False, pygame.color.Color('black'))
-                    window.blit(text_surface, (x, 480))
-                    name += key
-                    text_surface = font.render(name, False, pygame.color.Color('white'))
-                    window.blit(text_surface, (x, 480))
-        else:
-            delay -= 1
-
+        delay -= 1
         pygame.display.flip()
         clock.tick(fps)
-    return name
+    return
 
 
 def get_ready_screen():
@@ -91,7 +72,7 @@ def oh_dear_screen():
 
 
 def all_done_screen():
-    return _screen("Well Done", "Please enter your name:", True)
+    return high_scores.well_done_screen(window, font, clock, fps)
 
 
 # -----------------------------------------------------------------------------
