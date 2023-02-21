@@ -13,7 +13,7 @@ class Status:
     NEW_LIFE_SCORE = 10000
     GRAIN_PAUSE_LENGTH = 10
 
-    def __init__(self, _font):
+    def __init__(self):
         """
         Time, starts at 900 every level, ticks down 10 every 5 seconds.
         Bonus, starts at 1000*level, ticks down 10 every 5 time ticks.
@@ -31,7 +31,7 @@ class Status:
         self._start_left = 1
 
         pygame.font.init()
-        self._font = _font
+        self._font = pygame.font.Font(os.path.join('.', config.font_name), 36)
         self._colour = (255, 165, 0)
 
         self.icons = pygame.sprite.Group()
@@ -61,6 +61,15 @@ class Status:
 
     def is_time_up(self):
         return self.game_time <= 0
+
+    def reset_game(self):
+        self.reset_new_level()
+        self.game_score = 0
+        self.game_level = config.starting_level
+        self.game_pause = 0
+        self.game_lives = Status.GAME_START_LIVES
+        self.game_lives_added = 0
+        return
 
     def reset_new_level(self):
         self.reset_time()
@@ -107,12 +116,15 @@ class Status:
                 self.game_bonus = 0
         return
 
-    def on_harry_died(self):
+    def on_harry_died(self) -> int:
+        """
+        Remove a life, remove the 'hat' icon, and return number of lives left.
+        """
         self.game_lives -= 1
         self.icons.sprites()[-1].kill()
         return self.game_lives
 
-    def update_score_end_of_level(self, window, level, clock, fps):
+    def end_of_level(self, window, level, clock):
         step = (self.game_bonus // 10)
         while self.game_bonus > 0:
             if self.game_bonus < step:
@@ -131,13 +143,13 @@ class Status:
             self.draw(window)
             level.draw(window)
             pygame.display.flip()
-            clock.tick(fps)
+            clock.tick(config.fps)
 
         for i in range(0, 21):
             window.fill([0, 0, 0])
             self.draw(window)
             pygame.display.flip()
-            clock.tick(fps)
+            clock.tick(config.fps)
 
         return
 
