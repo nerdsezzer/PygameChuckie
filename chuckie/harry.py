@@ -86,13 +86,13 @@ class Harry(Thing):
             by_deltas()
         else:
             if self.direction == DIR.RIGHT:
-                pygame.mixer.Sound.play(self.step)
+                self.step.play()
                 self.image = self.images_left_right[self.frame]
             elif self.direction == DIR.LEFT:
-                pygame.mixer.Sound.play(self.step)
+                self.step.play()
                 self.image = pygame.transform.flip(self.images_left_right[self.frame], True, False)
             elif (self.direction == DIR.UP or self.direction == DIR.DOWN) and self.dy != 0:
-                pygame.mixer.Sound.play(self.ladder)
+                self.ladder.play()
                 self.image = self.images_up_down[self.frame]
             else:
                 by_deltas()
@@ -128,7 +128,7 @@ class Harry(Thing):
             self.dy = config.harry_default_hy_velocity
 
         if ctrls.space_down:
-            pygame.mixer.Sound.play(self.jump)
+            self.jump.play()
             ctrls.space_down = False
             self.state = STATE.JUMP
             self.y_velocity = jump_height
@@ -326,7 +326,7 @@ class Harry(Thing):
             self.state = STATE.FALLING
             self.dx = 0
             self.dy = config.harry_falling_hy_velocity
-            pygame.mixer.Sound.play(self.fall)
+            self.fall.play()
 
         return True
 
@@ -345,7 +345,7 @@ class Harry(Thing):
             self.state = STATE.FALLING
             self.dx = 0
             self.dy = config.harry_falling_hy_velocity
-            pygame.mixer.Sound.play(self.fall)
+            self.fall.play()
         return
 
     def process_move(self) -> None:
@@ -427,8 +427,8 @@ class Harry(Thing):
         element = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
         if element and element.name == 'egg':
             self.level.consume_egg(element)
-            pygame.mixer.Sound.play(self.egg)
+            self.egg.play()
         if element and element.name == "grain":
             self.level.consume_grain(element)
-            pygame.mixer.Sound.play(self.grain)
+            self.grain.play()
         return True
