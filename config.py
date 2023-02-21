@@ -5,6 +5,8 @@
 window_width = 1280
 window_height = 960
 
+fps = 20
+
 x_tiles = 22
 y_tiles = 22
 
@@ -61,7 +63,7 @@ hens_are_friendly = False
 #
 # settings to support debug...
 #
-start_paused = True
+start_paused = False
 
 #
 # settings to support debug...
