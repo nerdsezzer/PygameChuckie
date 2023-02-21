@@ -1,7 +1,7 @@
 import pygame
 import sys
 
-from config import start_paused
+import config
 
 
 class Controls:
@@ -17,7 +17,7 @@ class Controls:
         self.w_down = False
         self.s_down = False
         self.space_down = False
-        self.paused = True if start_paused else False
+        self.paused = True if config.start_paused else False
         self.quit = False
         return
 
