@@ -31,7 +31,7 @@ class Status:
         self._start_left = 1
 
         pygame.font.init()
-        self._font = pygame.font.Font(os.path.join('.', config.font_name), 36)
+        self._font = pygame.font.Font(os.path.join('.', 'resources', config.font_name), 36)
         self._colour = (255, 165, 0)
 
         self.icons = pygame.sprite.Group()

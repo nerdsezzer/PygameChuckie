@@ -32,7 +32,7 @@ ctrls = Controls()
 high_scores = HighScores(window, clock)
 
 pygame.mixer.init()
-opps = pygame.mixer.Sound(os.path.join('.', 'opps.wav'))
+opps = pygame.mixer.Sound(os.path.join('.', 'resources', 'opps.wav'))
 
 
 # -----------------------------------------------------------------------------
@@ -41,7 +41,7 @@ opps = pygame.mixer.Sound(os.path.join('.', 'opps.wav'))
 
 def get_ready_screen():
     delay = 40
-    font = pygame.font.Font(os.path.join('.', config.font_name), 36)
+    font = pygame.font.Font(os.path.join('.', 'resources', config.font_name), 36)
     window.fill([0, 0, 0])
     while delay:
         time.sleep(0.05)

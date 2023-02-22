@@ -38,12 +38,12 @@ class Harry(Thing):
         self.image = self.images_left_right[0]
         self.init_rect(self.image, start_tile_x, start_tile_y)
 
-        self.step = pygame.mixer.Sound(os.path.join('.', 'step.wav'))
-        self.jump = pygame.mixer.Sound(os.path.join('.', 'jump.wav'))
-        self.fall = pygame.mixer.Sound(os.path.join('.', 'fall.wav'))
-        self.egg = pygame.mixer.Sound(os.path.join('.', 'egg.wav'))
-        self.grain = pygame.mixer.Sound(os.path.join('.', 'grain.wav'))
-        self.ladder = pygame.mixer.Sound(os.path.join('.', 'ladder.wav'))
+        self.step = pygame.mixer.Sound(os.path.join('.', 'resources', 'step.wav'))
+        self.jump = pygame.mixer.Sound(os.path.join('.', 'resources', 'jump.wav'))
+        self.fall = pygame.mixer.Sound(os.path.join('.', 'resources', 'fall.wav'))
+        self.egg = pygame.mixer.Sound(os.path.join('.', 'resources', 'egg.wav'))
+        self.grain = pygame.mixer.Sound(os.path.join('.', 'resources', 'grain.wav'))
+        self.ladder = pygame.mixer.Sound(os.path.join('.', 'resources', 'ladder.wav'))
 
         if config.debug_harry:
             print(f"putting harry at [{start_tile_x}, {start_tile_y}]")

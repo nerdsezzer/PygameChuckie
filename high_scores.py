@@ -19,7 +19,7 @@ class HighScores:
         self.surface = _surface
         self.clock = _clock
         self.scores = HighScores.default_scores
-        self.font = pygame.font.Font(os.path.join('.', config.font_name), 36)
+        self.font = pygame.font.Font(os.path.join('.', 'resources', config.font_name), 36)
         return
 
     def update(self, new_score):
@@ -136,7 +136,7 @@ class HighScores:
         while self.wait_for_s_key():
 
             self.surface.fill([0, 0, 0])
-            title_font = pygame.font.Font(os.path.join('.', config.font_name), 72)
+            title_font = pygame.font.Font(os.path.join('.', 'resources', config.font_name), 72)
             text_surface = title_font.render("CHUCKIE EGG", False, pygame.color.Color('yellow'))
             x = (config.window_width - text_surface.get_width()) // 2
             y = 120
