@@ -9,7 +9,7 @@ from chuckie.controls import Controls
 from chuckie.status import Status
 from chuckie.level import Level
 from chuckie.level_data import levels
-from high_scores import HighScores
+from chuckie.high_scores import HighScores
 
 
 # Set up the game window
