@@ -148,7 +148,7 @@ class Harry(Thing):
         Harry can go left and right as long as there isn't a
         floor tile 'step'.
         """
-        moves = [False, False, True, True]
+        moves = [False, False, False, False]
 
         items = self.level.all_landables()
         above_tile = utils.tile_to_real(self.tx, self.ty-2)
@@ -172,19 +172,40 @@ class Harry(Thing):
         under_right = utils.tile_to_real(self.tx+1, self.ty+1)
         under_right_element = next(iter([r.name for r in items if r.rect.collidepoint(under_right)]), "")
 
+        def not_landable(element):
+            return element == "" or element == 'grain' or element == 'egg'
+
+        # allow go-up if above tile or upper tile is a ladder
         if above_tile_element == 'ladder':
             moves[0] = True
+
+        # allow go-down if the underneath tile is a ladder.
         if under_foot_element == 'ladder':
             moves[1] = True
-        if left_element == 'floor':
-            moves[2] = False
-        if right_element == 'floor':
-            moves[3] = False
 
+        # if we're on a ladder, moving sideways isn't allowed unless,
+        # we're at a floor level.
         if current_element == 'ladder':
-            if under_left_element == "" or under_left_element == 'grain' or under_left_element == 'egg':
+            # we're stepping off or over a ladder
+            if under_left_element == 'floor':
+                moves[2] = True
+            if under_right_element == 'floor':
+                moves[3] = True
+
+            # harry can step off ladders if he is on a floor level,
+            # i.e. there is a floor tile on the other side.
+            if under_left_element == 'floor' and not_landable(under_right_element):
+                moves[3] = True
+            if under_right_element == 'floor' and not_landable(under_left_element):
+                moves[2] = True
+        else:
+            # if we're not on a ladder, we can go left or right,
+            # unless there's a step in the way.
+            moves[2] = True
+            moves[3] = True
+            if left_element == 'floor':
                 moves[2] = False
-            if under_right_element == "" or under_right_element == 'grain' or under_right_element == 'egg':
+            if right_element == 'floor':
                 moves[3] = False
 
         return moves
@@ -192,7 +213,8 @@ class Harry(Thing):
     def check_can_move_sideways(self) -> bool:
         """
         This function checks to see if a move is possible, i.e. there's a
-        floor or ladder to step on.
+        floor or ladder to step on.  get_possible_moves(), is only called when
+        harry is standing on the top of a tile.
         """
         # if just doing a 'within tile move' then crack on...
         if self.x % tile_width:
