@@ -291,7 +291,5 @@ class Level:
 
     @staticmethod
     def is_outside_playable_area(thing):
-        return thing.x > config.right_limit \
-               or thing.x < config.left_limit \
-               or thing.y > config.top_limit \
+        return thing.y > config.top_limit \
                or thing.y < config.bottom_limit
