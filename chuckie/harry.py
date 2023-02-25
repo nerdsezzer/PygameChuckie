@@ -151,8 +151,8 @@ class Harry(Thing):
         moves = [False, False, True, True]
 
         items = self.level.all_landables()
-        head_tile = utils.tile_to_real(self.tx, self.ty-1)
-        head_tile_element = next(iter([r.name for r in items if r.rect.collidepoint(head_tile)]), "")
+        above_tile = utils.tile_to_real(self.tx, self.ty-2)
+        above_tile_element = next(iter([r.name for r in items if r.rect.collidepoint(above_tile)]), "")
 
         current_tile = utils.tile_to_real(self.tx, self.ty)
         current_element = next(iter([r.name for r in items if r.rect.collidepoint(current_tile)]), "")
@@ -172,7 +172,7 @@ class Harry(Thing):
         under_right = utils.tile_to_real(self.tx+1, self.ty+1)
         under_right_element = next(iter([r.name for r in items if r.rect.collidepoint(under_right)]), "")
 
-        if head_tile_element == 'ladder' or current_element == 'ladder':
+        if above_tile_element == 'ladder':
             moves[0] = True
         if under_foot_element == 'ladder':
             moves[1] = True
@@ -211,6 +211,10 @@ class Harry(Thing):
         """
         Checks to see if a move up or down is possible, i.e. we're on a ladder.
         """
+        # if just doing a 'within tile move' then crack on...
+        if self.y % config.tile_height:
+            return True
+
         if utils.left_edge_of_block(self.x):
             moves = self.get_possible_moves()
             if self.is_going_up() and moves[DIR.UP.value]:
