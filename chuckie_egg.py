@@ -1,29 +1,26 @@
+import os
+import time
+
 import pygame
 import pygame.midi
-import time
-import os
 
 import config
-from config import tile_width, tile_height, debug_display
 from chuckie.controls import Controls
-from chuckie.status import Status
+from chuckie.high_scores import HighScores
 from chuckie.level import Level
 from chuckie.level_data import levels
-from chuckie.high_scores import HighScores
-
+from chuckie.status import Status
+from config import tile_width, tile_height, debug_display
 
 # Set up the game window
 window = pygame.display.set_mode([config.window_width, config.window_height])
 pygame.display.set_caption("nerdSezzer - ChuckieEgg 2023!")
 pygame.init()
+pygame.mixer.init()
 
 clock = pygame.time.Clock()
 
 if debug_display:
-    """
-    Screen width=1280, height=960
-    tile width=52, height=32
-    """
     print(f"Screen width={window.get_width()}, height={window.get_height()}")
     print(f"tile width={tile_width}, height={tile_height}")
 
@@ -31,7 +28,6 @@ status = Status()
 ctrls = Controls()
 high_scores = HighScores(window, clock)
 
-pygame.mixer.init()
 opps = pygame.mixer.Sound(os.path.join('.', 'resources', 'opps.wav'))
 
 
@@ -76,7 +72,7 @@ level.create()
 # display the high scores, and wait for the 'S' key to start.
 high_scores.display()
 
-while status.game_lives > 0:
+while True:
 
     ctrls.process_events(status.time_tick)
     if not ctrls.paused:
@@ -98,6 +94,14 @@ while status.game_lives > 0:
             if status.on_harry_died():
                 get_ready_screen()
                 level.reset()
+            else:
+                high_scores.update(status.game_score)
+                status.reset_game()
+
+                # recreate ctrls (to reset values), and create the next level.
+                ctrls = Controls()
+                level = Level(levels[status.game_level], status)
+                level.create()
 
         # check we've completed the level?
         if level.are_all_eggs_collected():
