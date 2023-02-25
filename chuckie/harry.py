@@ -300,6 +300,14 @@ class Harry(Thing):
         if self.dy > config.max_fall_velocity:
             self.dy = config.max_fall_velocity
 
+        # have we hit the side of the screen, in which case bounce off!
+        if self.rect.centerx + self.dx < config.left_limit or self.rect.centerx + self.dx > config.right_limit:
+            print("jump->bashed screen sides?")
+            self.dx = 0 - self.dx
+            self.x += self.dx
+            self.y += self.dy
+            return
+
         # Check if harry can land on the floor.
         # When jumping, use the 'target' location and see if there is a
         # floor tile, if so snap to it.  This stops him being draw under
