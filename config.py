@@ -5,7 +5,7 @@
 window_width = 1280
 window_height = 960
 
-fps = 20
+fps = 16
 
 x_tiles = 22
 y_tiles = 22
@@ -19,8 +19,8 @@ tile_height = 32
 #
 # screen limits
 #
-left_limit = 0*tile_width
-right_limit = 22*tile_width
+left_edge = 2 * tile_width
+right_edge = 22 * tile_width
 bottom_limit = 0*tile_height
 top_limit = 28*tile_height      # note this one is +4'd to allow Harry to jump and come back!
 

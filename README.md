@@ -90,7 +90,7 @@ Mode 7.  The font was released into public domain.
  * https://fontlibrary.org/en/font/bedstead
 
 The sound effects are all within the public domain, 
-thanks to cabled_mess, trullilulli and FarBiscuit17000.
+thanks to cabled_mess and trullilulli.
 
 * egg.wav - https://freesound.org/people/cabled_mess/sounds/350870/
 * fall.wav - https://freesound.org/people/cabled_mess/sounds/350914/
@@ -98,5 +98,27 @@ thanks to cabled_mess, trullilulli and FarBiscuit17000.
 * jump.wav - https://freesound.org/people/cabled_mess/sounds/350904/
 * ladder.wav - https://freesound.org/people/trullilulli/sounds/422641/
 * opps.wav - https://freesound.org/people/cabled_mess/sounds/371451/
-* start.wav - https://freesound.org/people/FartBiscuit1700/sounds/368691/
 * step.wav - https://freesound.org/people/trullilulli/sounds/422644/
+
+
+## Bugs/Issues fixed since Beta release
+
+* Levels 6, 7 and 8 have now been added.
+* Harry bounces off the sides of the screen (left/right) only.
+* Harry bounces off the sides of platforms.
+* Harry can step/fall off ladders when at floor level (necessary for level 6?)
+* Game never ends (until user closes window).
+* 'footstep' sound is only played when Harry is on the lift and takes a step.
+
+
+* still not sure - harry and jumping on ladders, does he land on floor levels?
+* where should the edge of the screen be?
+* should he be able to make the jump to catch the ladder on level 
+  - it's doable but hard currently.
+
+
+## My Notes:
+
+from within docs: sphinx-apidoc -o .\source\ ..
+from within docs: .\make.bat clean html
+from within docs: .\make.bat html

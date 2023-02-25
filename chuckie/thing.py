@@ -1,8 +1,9 @@
-import pygame.sprite
 from enum import Enum
 
-import config
+import pygame.sprite
+
 import chuckie.utils as utils
+import config
 
 
 class STATE(Enum):
@@ -122,4 +123,3 @@ class Thing(pygame.sprite.Sprite):
         if self.hx_velocity > 0:
             return True
         return False
-
