@@ -269,6 +269,17 @@ class Harry(Thing):
             self.state = STATE.STILL
             self.y_velocity = 0
             self.dy = 0
+            return
+
+        if obj and obj.name == 'ladder':
+            a, b = utils.real_to_tile(obj.rect.x, obj.rect.y)
+            if self.level.element_at(a-1, b) == 'floor' or self.level.element_at(a+1, b) == 'floor':
+                print("fall->landed on ladder")
+                self.x = self.x + self.dx
+                self.y = obj.rect.top - self.rect.height
+                self.state = STATE.STILL
+                self.dy = 0
+                self.y_velocity = 0
         return
 
     def process_jump(self, w_key_down: bool, s_key_down: bool) -> None:
