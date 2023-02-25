@@ -86,10 +86,15 @@ class Harry(Thing):
             by_deltas()
         else:
             if self.direction == DIR.RIGHT:
-                self.step.play()
+                if self.is_going_right():
+                    # only play the step noise, if Harry is actually moving.
+                    # if he moves sideways on the lift, his state is set to WALKING.
+                    self.step.play()
                 self.image = self.images_left_right[self.frame]
             elif self.direction == DIR.LEFT:
-                self.step.play()
+                if self.is_going_left():
+                    # see comment above.
+                    self.step.play()
                 self.image = pygame.transform.flip(self.images_left_right[self.frame], True, False)
             elif (self.direction == DIR.UP or self.direction == DIR.DOWN) and self.dy != 0:
                 self.ladder.play()
