@@ -314,6 +314,18 @@ class Harry(Thing):
             self.y_velocity = 0
             return
 
+        if self.is_going_down() and obj and obj.name == 'ladder':
+            print("jump -> landing on ladder (no grab)")
+            a, b = utils.real_to_tile(obj.rect.x, obj.rect.y)
+            if self.level.element_at(a-1, b) == 'floor' or self.level.element_at(a+1, b) == 'floor':
+                print("jump -> landing on ladder cos of floor")
+                self.x = self.x + self.dx
+                self.y = obj.rect.top - self.rect.height
+                self.state = STATE.STILL
+                self.dy = 0
+                self.y_velocity = 0
+                return
+
         if self.is_going_down() and obj and obj.name == 'lift':
             self.x = self.x + self.dx
             self.y = obj.rect.top - self.rect.height
