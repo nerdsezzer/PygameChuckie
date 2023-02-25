@@ -349,6 +349,22 @@ class Harry(Thing):
             self.y_velocity = 0
             return
 
+        # for level 6, Harry needs to grab the bottom of the ladder
+        # ... so whether his upper tile collides.
+        pt = self.rect.midtop[0] + self.dx, self.rect.midtop[1] + self.dy
+        obj2 = next(iter([r for r in self.level.all_landables() if r.rect.collidepoint(pt)]), None)
+        if (w_key_down or s_key_down) \
+                and utils.left_edge_of_block(self.x + self.dx) \
+                and (obj and obj.name == 'ladder' or obj2 and obj2.name == 'ladder'):
+            # he's jumping 'through' a ladder, grab it!
+            # update x and y, make sure both snap to the ladder's full tile.
+            self.x = obj.rect.x if obj else obj2.rect.x
+            self.y = obj.rect.y - self.rect.height if obj else obj2.rect.y
+            self.state = STATE.STILL
+            self.dy = 0
+            self.y_velocity = 0
+            return
+
         self.x += self.dx
         self.y += self.dy
         return
