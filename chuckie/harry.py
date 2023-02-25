@@ -216,6 +216,13 @@ class Harry(Thing):
         floor or ladder to step on.  get_possible_moves(), is only called when
         harry is standing on the top of a tile.
         """
+        # stop if we reach either the left or right edge of playable area.
+        if self.rect.centerx + self.dx < config.left_limit \
+                or self.rect.centerx + self.dx > config.right_limit:
+            self.state = STATE.STILL
+            self.dx = 0
+            return False
+
         # if just doing a 'within tile move' then crack on...
         if self.x % tile_width:
             return True
