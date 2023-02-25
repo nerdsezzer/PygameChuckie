@@ -1,10 +1,11 @@
-from random import Random
-import pygame
 import os
+from random import Random
 
+import pygame
+
+import chuckie.utils as utils
 import config
 from chuckie.thing import Thing, STATE, DIR
-import chuckie.utils as utils
 
 
 class Hen(Thing):
@@ -17,36 +18,9 @@ class Hen(Thing):
         super().__init__('hen', level, start_tile_x, start_tile_y, direction)
 
         self.images_left_right = []
-        for i in range(1, 5):
-            if config.debug_display:
-                img = pygame.image.load(os.path.join('.', 'images', 'hen-debug.png')).convert()
-            else:
-                img = pygame.image.load(os.path.join('.', 'images', 'hen-' + str(i) + '.png')).convert()
-            img.convert_alpha()
-            img.set_colorkey((0, 0, 0))
-            self.images_left_right.append(img)
-
         self.images_eating = []
-        for i in range(1, 5):
-            if config.debug_display:
-                img = pygame.image.load(os.path.join('.', 'images', 'hen-debug.png')).convert()
-            else:
-                img = pygame.image.load(os.path.join('.', 'images', 'hen-eating-' + str(i) + '.png')).convert()
-            img.convert_alpha()
-            img.set_colorkey((0, 0, 0))
-            self.images_eating.append(img)
-
         self.images_up_down = []
-        for i in range(1, 5):
-            if config.debug_display:
-                img = pygame.image.load(os.path.join('.', 'images', 'hen-debug.png')).convert()
-            else:
-                img = pygame.image.load(os.path.join('.', 'images', 'hen-ladder-' + str(i) + '.png')).convert()
-            img.convert_alpha()
-            img.set_colorkey((0, 0, 0))
-            self.images_up_down.append(img)
-
-        self.images = self.images_left_right
+        self.images = self._load_images(os.path.join('.', 'images', 'hen-debug.png'))
         self.image = self.images[0]
         self.init_rect(self.image, start_tile_x, start_tile_y)
 
@@ -62,9 +36,37 @@ class Hen(Thing):
 
         if config.debug_hens:
             self.dump_state()
+        #self.move()
+        #return
 
-        self.move()
-        return
+    def _load_images(self, file):
+        for i in range(1, 5):
+            if not config.debug_display:
+                file = os.path.join('.', 'images', 'hen-' + str(i) + '.png')
+            img = pygame.image.load(file).convert()
+            img.convert_alpha()
+            img.set_colorkey((0, 0, 0))
+            self.images_left_right.append(img)
+
+        self.images_eating = []
+        for i in range(1, 5):
+            if not config.debug_display:
+                file = os.path.join('.', 'images', 'hen-eating-' + str(i) + '.png')
+            img = pygame.image.load(file).convert()
+            img.convert_alpha()
+            img.set_colorkey((0, 0, 0))
+            self.images_eating.append(img)
+
+        self.images_up_down = []
+        for i in range(1, 5):
+            if not config.debug_display:
+                file = os.path.join('.', 'images', 'hen-ladder-' + str(i) + '.png')
+            img = pygame.image.load(file).convert()
+            img.convert_alpha()
+            img.set_colorkey((0, 0, 0))
+            self.images_up_down.append(img)
+
+        return self.images_left_right
 
     def __str__(self):
         return "[hen" + str(id(self))[-2:] + "]" + super().__str__()[5:]
@@ -175,6 +177,8 @@ class Hen(Thing):
     def check_for_grain(self):
         """
         Check if the next tile is grain, if it is... eat it!
+        This is a special routine as due to the animation, the hens have to
+        check one tile ahead.
         """
         tx = self.tx - 1 if self.is_going_left() else self.tx + 1
         next_tile = utils.tile_to_real(tx, self.ty)
