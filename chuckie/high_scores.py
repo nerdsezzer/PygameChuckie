@@ -28,9 +28,10 @@ class HighScores:
         the new name and score into the scores, and display them using
         a new Controls (to reset keypress buffers) and wait for 's' to start.
         """
-        name = self.well_done_screen()
-        if name:
-            self.add_new_score(name, new_score)
+        if new_score > self.scores[-1][1]:
+            name = self.well_done_screen()
+            if name:
+                self.add_new_score(name, new_score)
         self.display()
         return
 
