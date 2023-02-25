@@ -308,6 +308,17 @@ class Harry(Thing):
             self.y += self.dy
             return
 
+        # have we hit a wall, if so, bounce off...
+        # this needs to only work if the wall is the end of a platform, not just a floor tiles' edge.
+        pt = self.rect.centerx + self.dx, self.rect.centery + self.dy
+        obj = next(iter([r for r in self.level.all_landables() if r.rect.collidepoint(pt)]), None)
+        if self.is_going_down() and obj and obj.name == 'floor':
+            print("jump->bashed floor?")
+            self.dx = 0 - self.dx
+            self.x += self.dx
+            self.y += self.dy
+            return
+
         # Check if harry can land on the floor.
         # When jumping, use the 'target' location and see if there is a
         # floor tile, if so snap to it.  This stops him being draw under
