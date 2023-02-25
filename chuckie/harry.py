@@ -500,8 +500,7 @@ class Harry(Thing):
             return False
 
         # check for any consumables!
-        pt = self.rect.centerx, self.rect.y + config.tile_height
-        element = next(iter([r for r in self.level.elements if r.rect.collidepoint(pt)]), None)
+        element = next(iter([r for r in self.level.elements if r.rect.colliderect(self.rect)]), None)
         if element and element.name == 'egg':
             self.level.consume_egg(element)
             self.egg.play()
