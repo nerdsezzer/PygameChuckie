@@ -4,6 +4,7 @@ playable character - Hen-House Harry.
 """
 import os
 
+# pylint: disable=import-error
 import pygame
 
 import chuckie.utils as utils
@@ -26,13 +27,14 @@ class Harry(Thing):
     Harry can consume both eggs and grain.  Both award points, but the grain
     stalls the game time from ticking down.
     """
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, level, start_tile_x: int, start_tile_y: int, start_direction: DIR):
         super().__init__('harry', level, start_tile_x, start_tile_y, start_direction)
 
         self.images_left_right = []
         self.images_up_down = []
         self.image = self._load_images(os.path.join('.', 'images', 'harry-debug.png'))
-        self.init_rect(self.image, start_tile_x, start_tile_y)
+        self.init_rect(self.image)
 
         self.step = pygame.mixer.Sound(os.path.join('.', 'resources', 'step.wav'))
         self.jump = pygame.mixer.Sound(os.path.join('.', 'resources', 'jump.wav'))
@@ -46,11 +48,14 @@ class Harry(Thing):
 
         self.state = STATE.STILL
         self.on_lift = False
-
         self.draw()
-        return
 
     def _load_images(self, file: str):
+        """
+        Internal function to load the sprites from their image files.
+        :param file: path to the debug image, if debug_display is True.
+        :return: the first (default) image to draw on creation.
+        """
         for i in range(1, 5):
             if not config.debug_display:
                 file = os.path.join('.', 'images', 'harry-' + str(i) + '.png')
@@ -90,6 +95,7 @@ class Harry(Thing):
         if self.on_lift:
             self.frame = 2
 
+        # pylint: disable=useless-return
         def by_deltas():
             if self.is_going_right():
                 self.image = self.images_left_right[self.frame]
@@ -116,7 +122,6 @@ class Harry(Thing):
                 self.image = self.images_up_down[self.frame]
             else:
                 by_deltas()
-        return
 
     def update_based_on_controls(self, ctrls: Controls) -> None:
         """
@@ -155,6 +160,7 @@ class Harry(Thing):
             self.y_velocity = jump_height
             self.dy = self.y_velocity
 
+    # pylint: disable=too-many-locals
     def get_possible_moves(self):
         """
         Returns a list of bools, that denote if Harry can go
@@ -192,7 +198,7 @@ class Harry(Thing):
                                          if r.rect.collidepoint(under_right)]), "")
 
         def not_landable(element):
-            return element == "" or element == 'grain' or element == 'egg'
+            return element in ('', 'grain', 'egg')
 
         # allow go-up if above tile is a ladder
         if above_tile_element == 'ladder':
@@ -231,8 +237,8 @@ class Harry(Thing):
         Checks to see if a sideways move is possible, i.e. there is a floor or
         ladder to step on.
 
-        First it checks to see if Harry is moving out of the playable area, if so
-        the move is stopped.
+        First it checks to see if Harry is moving out of the playable area, if
+        so the move is stopped.
 
         If Harry is just moving within a tile, i.e. he's not on the left edge
         of a tile, then allow the move.
@@ -332,6 +338,7 @@ class Harry(Thing):
             return
 
         if obj and obj.name == 'ladder':
+            # pylint: disable=invalid-name
             a, b = utils.real_to_tile(obj.rect.x, obj.rect.y)
             if self.level.element_at(a-1, b) == 'floor' or self.level.element_at(a+1, b) == 'floor':
                 self._snap(obj)
@@ -373,54 +380,53 @@ class Harry(Thing):
 
         # have we hit the edge of a floor-tile? in which case bounce!
         midpoint = self.rect.centerx + self.dx, self.rect.centery + self.dy
-        obj = next(iter([r for r in self.level.all_landables()
+        mid = next(iter([r for r in self.level.all_landables()
                          if r.rect.collidepoint(midpoint)]), None)
-        if self.is_going_down() and obj and obj.name == 'floor':
+        if self.is_going_down() and mid and mid.name == 'floor':
             self._bounce()
             return
 
         # has Harry landed on a floor 'tile'?
         mid_bottom = self.rect.midbottom[0] + self.dx, self.rect.midbottom[1] + self.dy
-        obj = next(iter([r for r in self.level.all_landables()
-                         if r.rect.collidepoint(mid_bottom)]), None)
-        if self.is_going_down() and obj and obj.name == 'floor':
-            self._snap(obj)
+        below = next(iter([r for r in self.level.all_landables()
+                           if r.rect.collidepoint(mid_bottom)]), None)
+        if self.is_going_down() and below and below.name == 'floor':
+            self._snap(below)
             return
 
         # has Harry landed on a lift?
-        if self.is_going_down() and obj and obj.name == 'lift':
-            self._snap(obj)
+        if self.is_going_down() and below and below.name == 'lift':
+            self._snap(below)
             self.on_lift = True
             self.dy = config.lift_hy_velocity
             self.dx = 0
             return
 
         # has Harry landed on a landable-ladder tile?
-        if self.is_going_down() and obj and obj.name == 'ladder':
-            a, b = utils.real_to_tile(obj.rect.x, obj.rect.y)
+        if self.is_going_down() and below and below.name == 'ladder':
+            # pylint: disable=invalid-name
+            a, b = utils.real_to_tile(below.rect.x, below.rect.y)
             if self.level.element_at(a-1, b) == 'floor' \
                     or self.level.element_at(a+1, b) == 'floor':
-                self._snap(obj)
+                self._snap(below)
                 return
 
-        # is Harry jumping through a ladder? should he grab it?
-        # for level 6, Harry needs to grab a ladder at head level.
-        mid_top = self.rect.midtop[0] + self.dx, self.rect.midtop[1] + self.dy
-        obj2 = next(iter([r for r in self.level.all_landables()
-                          if r.rect.collidepoint(mid_top)]), None)
-        if (w_key_down or s_key_down) \
-                and utils.left_edge_of_block(self.x + self.dx) \
-                and (obj and obj.name == 'ladder' or obj2 and obj2.name == 'ladder'):
-            self.x = obj.rect.x if obj else obj2.rect.x
-            self.y = obj.rect.y - self.rect.height if obj else obj2.rect.y
-            self.state = STATE.STILL
-            self.dy = 0
-            self.y_velocity = 0
-            return
+        if (w_key_down or s_key_down) and utils.left_edge_of_block(self.x + self.dx):
+            # is Harry jumping through a ladder? should he grab it?
+            # for level 6, Harry needs to grab a ladder at head level.
+            mid_top = self.rect.midtop[0] + self.dx, self.rect.midtop[1] + self.dy
+            top = next(iter([r for r in self.level.all_landables()
+                             if r.rect.collidepoint(mid_top)]), None)
+            if (below and below.name == 'ladder') or (top and top.name == 'ladder'):
+                self.x = below.rect.x if below else top.rect.x
+                self.y = below.rect.y - self.rect.height if below else top.rect.y
+                self.state = STATE.STILL
+                self.dy = 0
+                self.y_velocity = 0
+                return
 
         self.x += self.dx
         self.y += self.dy
-        return
 
     def process_lift(self) -> None:
         """
@@ -429,7 +435,6 @@ class Harry(Thing):
         """
         # work out new position
         self.y += self.dy
-        return
 
     def _fall(self) -> None:
         """
@@ -448,9 +453,9 @@ class Harry(Thing):
         By the time this function is called, x and y will have been updated,
         but rect won't have as we haven't called draw() yet...
         """
-        pt = self.rect.midbottom[0] + self.dx, self.rect.midbottom[1] + 1
+        point = self.rect.midbottom[0] + self.dx, self.rect.midbottom[1] + 1
         lift = next(iter([r for r in self.level.all_landables()
-                          if r.rect.collidepoint(pt) and r.name == 'lift']), None)
+                          if r.rect.collidepoint(point) and r.name == 'lift']), None)
         if lift is None:
             return
 

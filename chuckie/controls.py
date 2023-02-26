@@ -1,5 +1,10 @@
-import pygame
+"""
+This module represents the user's key presses within the game.
+"""
 import sys
+
+# pylint: disable=import-error
+import pygame
 
 import config
 
@@ -17,23 +22,30 @@ class Controls:
         self.w_down = False
         self.s_down = False
         self.space_down = False
-        self.paused = True if config.start_paused else False
+        self.paused = config.start_paused
         self.quit = False
-        return
 
     def __str__(self):
-        s = "["
-        s += "Up" if self.w_down else "--"
-        s += "|"
-        s += "Dw" if self.s_down else "--"
-        s += "|"
-        s += "Lf" if self.a_down else "--"
-        s += "|"
-        s += "Rt" if self.d_down else "--"
-        s += "]"
-        return f"{s}, space={self.space_down}, paused={self.paused}"
+        status = "["
+        status += "Up" if self.w_down else "--"
+        status += "|"
+        status += "Dw" if self.s_down else "--"
+        status += "|"
+        status += "Lf" if self.a_down else "--"
+        status += "|"
+        status += "Rt" if self.d_down else "--"
+        status += "]"
+        return f"{status}, space={self.space_down}, paused={self.paused}"
 
-    def process_events(self, tick_handler):
+    # pylint: disable=too-many-branches
+    def process_events(self, tick_handler) -> None:
+        """
+        Function used to capture the state of the keypresses, for when needed
+        by Harry, HighScores, or main game loop.
+        This method captures the 500ms tick, that is used to manage the game
+        time counter.
+        :param tick_handler: handler for the status.update() routine.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -70,5 +82,3 @@ class Controls:
                     self.a_down = False
                 if event.key == ord('d'):
                     self.d_down = False
-
-        return
