@@ -314,6 +314,8 @@ class Harry(Thing):
         self.x += self.dx
         self.y += self.dy
 
+    # pylint: disable=invalid-name
+    # ^^^  doesnt like a,b!
     def process_fall(self) -> None:
         """
         Updates Harry's coordinates, given that he is falling.  Checks to see if
@@ -338,12 +340,13 @@ class Harry(Thing):
             return
 
         if obj and obj.name == 'ladder':
-            # pylint: disable=invalid-name
             a, b = utils.real_to_tile(obj.rect.x, obj.rect.y)
             if self.level.element_at(a-1, b) == 'floor' or self.level.element_at(a+1, b) == 'floor':
                 self._snap(obj)
         return
 
+    # pylint: disable=invalid-name
+    # ^^^ it doesnt like a,b!
     def process_jump(self, w_key_down: bool, s_key_down: bool) -> None:
         """
         Updates Harry's coordinates, given that he is jumping.
@@ -404,7 +407,6 @@ class Harry(Thing):
 
         # has Harry landed on a landable-ladder tile?
         if self.is_going_down() and below and below.name == 'ladder':
-            # pylint: disable=invalid-name
             a, b = utils.real_to_tile(below.rect.x, below.rect.y)
             if self.level.element_at(a-1, b) == 'floor' \
                     or self.level.element_at(a+1, b) == 'floor':

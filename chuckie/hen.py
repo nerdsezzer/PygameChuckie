@@ -186,13 +186,14 @@ class Hen(Thing):
             moves[3] = True
         return moves
 
+    # pylint: disable=invalid-name
+    # ^^^ it doesn't like tx
     def check_for_grain(self) -> bool:
         """
         Check if the next tile is grain, if it is... eat it!
         This is a special routine as due to the animation, the hens have to
         check one tile ahead.
         """
-        # pylint: disable=invalid-name
         tx = self.tx - 1 if self.is_going_left() else self.tx + 1
         next_tile = utils.tile_to_real(tx, self.ty)
         next_element = next(iter([r for r in self.level.elements

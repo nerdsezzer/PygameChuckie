@@ -1,6 +1,11 @@
-import pygame
-import config
+"""
+
+"""
 import os
+
+import pygame
+
+import config
 
 
 class Egg(pygame.sprite.Sprite):
